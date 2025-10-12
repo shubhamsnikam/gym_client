@@ -7,7 +7,7 @@ import axios from 'axios';
 // Member API calls
 export const getMembers = async () => {
   try {
-    const response = await axios.get(`/api/members`);
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/members`);
     return response.data;
   } catch (error) {
     console.error('Error fetching members:', error.response?.data || error.message);
@@ -17,7 +17,7 @@ export const getMembers = async () => {
 
 export const getMemberById = async (id) => {
   try {
-    const response = await axios.get(`/api/members/${id}`);
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/members/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching member with id ${id}:`, error.response?.data || error.message);
@@ -27,7 +27,7 @@ export const getMemberById = async (id) => {
 
 export const createMember = async (memberData) => {
   try {
-    const response = await axios.post(`/api/members`, memberData, {
+    const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/members`, memberData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -42,7 +42,7 @@ export const createMember = async (memberData) => {
 
 export const updateMember = async (id, memberData) => {
   try {
-    const response = await axios.put(`/api/members/${id}`, memberData, {
+    const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/members/${id}`, memberData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -57,7 +57,7 @@ export const updateMember = async (id, memberData) => {
 
 export const deleteMember = async (id) => {
   try {
-    const response = await axios.delete(`/api/members/${id}`);
+    const response = await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/members/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error deleting member with id ${id}:`, error.response?.data || error.message);
