@@ -1,7 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Button, Spinner, Alert, ListGroup } from 'react-bootstrap';
-import { getMemberById } from '../services/api';
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Spinner,
+  ProgressBar,
+  Modal,
+  Form,
+  Badge,
+  ListGroup,
+} from 'react-bootstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { getMemberById, updateMember } from '../services/api';
 import { getPhotoUrl } from '../utils/photoUrl';
 
 const MemberDetails = () => {
@@ -9,7 +22,14 @@ const MemberDetails = () => {
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+
+  const [showRenewModal, setShowRenewModal] = useState(false);
+  const [renewMonths, setRenewMonths] = useState(1);
+  const [renewing, setRenewing] = useState(false);
+
+  const [showWeightModal, setShowWeightModal] = useState(false);
+  const [newWeight, setNewWeight] = useState('');
+  const [updatingWeight, setUpdatingWeight] = useState(false);
 
   useEffect(() => {
     const fetchMember = async () => {
@@ -17,87 +37,281 @@ const MemberDetails = () => {
         const fetchedMember = await getMemberById(id);
         setMember(fetchedMember);
       } catch (err) {
-        setError('Failed to fetch member details.');
-        console.error(err);
+        toast.error('Failed to fetch member details.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchMember();
   }, [id]);
 
-  if (loading) return <Spinner animation="border" className="mt-5 mx-auto d-block" />;
-  if (error) return <Alert variant="danger" className="mt-3">{error}</Alert>;
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+  };
+
+  const handleRenew = async () => {
+    try {
+      setRenewing(true);
+      const formData = new FormData();
+      formData.append('membershipDuration', renewMonths);
+      await updateMember(id, formData);
+      setShowRenewModal(false);
+      toast.success(`Membership renewed for ${renewMonths} month(s)!`);
+      const updated = await getMemberById(id);
+      setMember(updated);
+    } catch (err) {
+      toast.error('Failed to renew membership.');
+    } finally {
+      setRenewing(false);
+    }
+  };
+
+  const handleUpdateWeight = async () => {
+    if (!newWeight || isNaN(newWeight)) {
+      toast.warning('Please enter a valid weight.');
+      return;
+    }
+    try {
+      setUpdatingWeight(true);
+      const formData = new FormData();
+      formData.append('bodyWeight', newWeight);
+      await updateMember(id, formData);
+      setShowWeightModal(false);
+      toast.success(`Body weight updated to ${newWeight} kg successfully!`);
+      const updated = await getMemberById(id);
+      setMember(updated);
+      setNewWeight('');
+    } catch (err) {
+      toast.error('Failed to update weight.');
+    } finally {
+      setUpdatingWeight(false);
+    }
+  };
+
+  if (loading)
+    return <Spinner animation="border" className="mt-5 mx-auto d-block" />;
   if (!member) return null;
 
-  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString();
+  const startDate = new Date(member.membershipStartDate);
+  const endDate = new Date(member.membershipEndDate);
+  const today = new Date();
+  const totalDuration = endDate - startDate;
+  const elapsed = today - startDate;
+  const progress =
+    totalDuration > 0 ? Math.min((elapsed / totalDuration) * 100, 100) : 0;
 
   return (
-    <div className="page-content" style={{ paddingTop: '70px', maxWidth: '960px', margin: 'auto' }}>
-      <Card className="mt-2 mb-4">
-        <Card.Header>
-          <h4>Member Details</h4>
-        </Card.Header>
+    <div
+      className="page-content"
+      style={{ paddingTop: '70px', maxWidth: '960px', margin: 'auto' }}
+    >
+      {/* Toast Container */}
+      <ToastContainer position="top-center" autoClose={2000} theme="colored" />
 
-        <Card.Body>
-          <Row>
-            <Col md={3} className="d-flex align-items-center justify-content-center">
-              <img
-                src={getPhotoUrl(member.photo)}
-                alt="Profile"
-                style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '50%' }}
-              />
+      <Card className="mt-3 shadow-lg border-0 rounded-4">
+        <Card.Body className="p-4">
+          <Row className="align-items-start">
+            {/* Photo & Weight Column */}
+            <Col md={4} className="text-center">
+              <div className="position-relative d-inline-block">
+                <img
+                  src={getPhotoUrl(member.photo)}
+                  alt="Profile"
+                  className="rounded-circle shadow"
+                  style={{ width: '160px', height: '160px', objectFit: 'cover' }}
+                />
+                <Badge
+                  bg="success"
+                  pill
+                  className="position-absolute top-0 start-100 translate-middle"
+                  style={{ fontSize: '0.8rem' }}
+                >
+                  Active
+                </Badge>
+              </div>
+              <h3 className="mt-3">{member.name}</h3>
+              <p className="text-muted">{member.workoutPlan || 'No Plan Assigned'}</p>
+
+              {/* Body Weight Card */}
+              <Card className="mt-3 shadow-sm border-0 bg-light text-center">
+                <Card.Body>
+                  <h6 className="text-muted">Body Weight</h6>
+                  <h3>{member.bodyWeight ?? 'N/A'} kg</h3>
+                  <Button variant="primary" size="sm" onClick={() => setShowWeightModal(true)}>
+                    ⚖️ Update Weight
+                  </Button>
+                </Card.Body>
+              </Card>
+
+              {/* Previous Weights */}
+              {member.previousWeights?.length > 0 && (
+                <Card className="mt-3 shadow-sm p-3">
+                  <h6>Previous Weights</h6>
+                  <ul className="list-group list-group-flush">
+                    {member.previousWeights.map((entry, idx) => (
+                      <li key={idx} className="list-group-item d-flex justify-content-between">
+                        <span>{new Date(entry.date).toLocaleDateString()}</span>
+                        <span>{entry.weight} kg</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              )}
             </Col>
-            <Col md={9}>
-              <Row>
+
+            {/* Details Column */}
+            <Col md={8}>
+              {/* Membership & Fee Cards */}
+              <Row className="mb-3">
                 <Col md={6}>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item><strong>Name:</strong> {member.name}</ListGroup.Item>
-                    <ListGroup.Item><strong>Date of Birth:</strong> {formatDate(member.dob)}</ListGroup.Item>
-                    <ListGroup.Item><strong>Address:</strong> {member.address}</ListGroup.Item>
-                    <ListGroup.Item><strong>Mobile:</strong> {member.mobileNumber}</ListGroup.Item>
-                    <ListGroup.Item><strong>Emergency Contact:</strong> {member.emergencyContactNumber}</ListGroup.Item>
-                    <ListGroup.Item><strong>Health Conditions:</strong> {member.healthConditions ?? 'N/A'}</ListGroup.Item>
-                  </ListGroup>
+                  <Card className="mb-3 shadow-sm border-0 bg-light">
+                    <Card.Body>
+                      <h6 className="text-muted">Membership</h6>
+                      <h5>
+                        {formatDate(member.membershipStartDate)} - {formatDate(member.membershipEndDate)}
+                      </h5>
+                      <ProgressBar now={progress} label={`${Math.round(progress)}%`} className="mt-2" />
+                    </Card.Body>
+                  </Card>
                 </Col>
+
                 <Col md={6}>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item><strong>Membership Start:</strong> {formatDate(member.membershipStartDate)}</ListGroup.Item>
-                    <ListGroup.Item><strong>Duration (months):</strong> {member.membershipDuration}</ListGroup.Item>
-                    <ListGroup.Item><strong>End Date:</strong> {formatDate(member.membershipEndDate)}</ListGroup.Item>
-                    <ListGroup.Item><strong>Paid Fee:</strong> ₹{member.paidFee}</ListGroup.Item>
-                    <ListGroup.Item><strong>Pending Fee:</strong> ₹{member.pendingFee}</ListGroup.Item>
-                    <ListGroup.Item><strong>Workout Plan:</strong> {member.workoutPlan ?? 'N/A'}</ListGroup.Item>
-                  </ListGroup>
+                  <Card className="mb-3 shadow-sm border-0 bg-light">
+                    <Card.Body>
+                      <h6 className="text-muted">Fees</h6>
+                      <h5>
+                        Paid: ₹{member.paidFee ?? 0} <br />
+                        Pending: ₹{member.pendingFee ?? 0}
+                      </h5>
+                    </Card.Body>
+                  </Card>
                 </Col>
               </Row>
+
+              {/* Other Details */}
+              <Row>
+                <Col md={6} className="mb-3">
+                  <Card className="shadow-sm border-0 bg-white">
+                    <Card.Body>
+                      <h6>Contact Info</h6>
+                      <ListGroup variant="flush">
+                        <ListGroup.Item>
+                          <strong>Mobile:</strong> {member.mobileNumber ?? 'N/A'}
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                          <strong>Emergency:</strong> {member.emergencyContactNumber ?? 'N/A'}
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                          <strong>Address:</strong> {member.address ?? 'N/A'}
+                        </ListGroup.Item>
+                      </ListGroup>
+                    </Card.Body>
+                  </Card>
+                </Col>
+
+                <Col md={6} className="mb-3">
+                  <Card className="shadow-sm border-0 bg-white">
+                    <Card.Body>
+                      <h6>Health & Membership</h6>
+                      <ListGroup variant="flush">
+                        <ListGroup.Item>
+                          <strong>Health Conditions:</strong>{' '}
+                          <Badge bg="info">{member.healthConditions || 'None'}</Badge>
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                          <strong>Workout Plan:</strong>{' '}
+                          <Badge bg="secondary">{member.workoutPlan || 'N/A'}</Badge>
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                          <strong>Duration:</strong> <Badge bg="success">{member.membershipDuration} mo</Badge>
+                        </ListGroup.Item>
+                      </ListGroup>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Body Measurements */}
+              <Row>
+                {['Chest', 'Waist', 'Hips', 'Abs', 'Arms'].map((part) => (
+                  <Col md={4} key={part} className="mb-3">
+                    <Card className="shadow-sm border-0 bg-white text-center">
+                      <Card.Body>
+                        <h6 className="text-muted">{part}</h6>
+                        <h5>{member.bodyMeasurements?.[part.toLowerCase()] ?? 'N/A'} cm</h5>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+
+              <div className="mt-3 d-flex justify-content-between">
+                <Button variant="secondary" onClick={() => navigate('/members')}>
+                  ← Back to Members
+                </Button>
+                <Button variant="warning" onClick={() => setShowRenewModal(true)}>
+                  🔁 Renew Membership
+                </Button>
+              </div>
             </Col>
           </Row>
-
-          <hr />
-
-          <Row>
-            <Col md={6}>
-              <h5>Body Weight= {member.bodyWeight} kg </h5>
-            </Col>
-            <Col md={6}>
-              <h5>Body Measurements</h5>
-              <ListGroup variant="flush">
-                <ListGroup.Item><strong>Chest:</strong> {member.bodyMeasurements?.chest} cm</ListGroup.Item>
-                <ListGroup.Item><strong>Waist:</strong> {member.bodyMeasurements?.waist} cm</ListGroup.Item>
-                <ListGroup.Item><strong>Hips:</strong> {member.bodyMeasurements?.hips} cm</ListGroup.Item>
-                <ListGroup.Item><strong>Abs:</strong> {member.bodyMeasurements?.abs} cm</ListGroup.Item>
-                <ListGroup.Item><strong>Arms:</strong> {member.bodyMeasurements?.arms} cm</ListGroup.Item>
-              </ListGroup>
-            </Col>
-          </Row>
-
-          <div className="mt-4 d-flex justify-content-end">
-            <Button variant="danger" onClick={() => navigate('/members')}>Back to Members</Button>
-          </div>
         </Card.Body>
       </Card>
+
+      {/* Renew Modal */}
+      <Modal show={showRenewModal} onHide={() => setShowRenewModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Renew Membership</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Duration (months):</Form.Label>
+            <Form.Select value={renewMonths} onChange={(e) => setRenewMonths(Number(e.target.value))}>
+              {[1, 3, 6, 12].map((m) => (
+                <option key={m} value={m}>
+                  {m} Month{m > 1 ? 's' : ''}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRenewModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleRenew} disabled={renewing}>
+            {renewing ? 'Renewing...' : 'Confirm'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Weight Modal */}
+      <Modal show={showWeightModal} onHide={() => setShowWeightModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Update Weight</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Enter New Weight (kg):</Form.Label>
+            <Form.Control
+              type="number"
+              value={newWeight}
+              onChange={(e) => setNewWeight(e.target.value)}
+              placeholder="e.g., 72"
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowWeightModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleUpdateWeight} disabled={updatingWeight}>
+            {updatingWeight ? 'Updating...' : 'Save'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
