@@ -1,21 +1,17 @@
-// MemberForm.js
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Alert } from 'react-bootstrap';
+import { Form, Button, Card, Row, Col, Badge } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { createMember, getMemberById, updateMember } from '../services/api';
-import { getPhotoUrl } from '../utils/photoUrl';
-
+import { createMember, getMemberById, updateMember, getMemberImageUrl } from '../services/api';
+import { toast } from 'react-toastify';
 
 const MemberForm = () => {
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = Boolean(id);
 
-  const [initialValues, setInitialValues] = useState({
+  const defaultValues = {
     name: '',
     address: '',
     dob: '',
@@ -26,13 +22,14 @@ const MemberForm = () => {
     pendingFee: 0,
     workoutPlan: '',
     bodyWeight: '',
-    bodyMeasurements: {
-      chest: '', waist: '', hips: '', abs: '', arms: ''
-    },
+    bodyMeasurements: { chest: '', waist: '', hips: '', abs: '', arms: '' },
+    previousWeights: [],
     mobileNumber: '',
     emergencyContactNumber: '',
-    photo: null
-  });
+    photo: null,
+  };
+
+  const [initialValues, setInitialValues] = useState(defaultValues);
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -40,32 +37,42 @@ const MemberForm = () => {
   };
 
   const calculateEndDate = (startDate, duration) => {
+    if (!startDate || !duration) return '';
     const date = new Date(startDate);
-    date.setMonth(date.getMonth() + parseInt(duration));
-    return formatDate(date);
+    date.setMonth(date.getMonth() + Number(duration));
+    return date.toISOString().split('T')[0];
   };
+
+  const getMembershipStatus = (start, duration) => {
+    if (!start || !duration) return 'Unknown';
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + Number(duration));
+    return new Date() > end ? 'Expired' : 'Active';
+  };
+
+  const getFeeStatus = (paid, pending) => (pending > 0 ? 'Pending' : 'Paid');
 
   useEffect(() => {
     if (!isEdit) return;
-
     const fetchMember = async () => {
       try {
         const member = await getMemberById(id);
         const formatted = {
+          ...defaultValues,
           ...member,
           dob: formatDate(member.dob),
           membershipStartDate: formatDate(member.membershipStartDate),
           membershipEndDate: formatDate(member.membershipEndDate),
-          bodyMeasurements: { ...initialValues.bodyMeasurements, ...member.bodyMeasurements },
-          photo: member.photo || null
+          bodyMeasurements: { ...defaultValues.bodyMeasurements, ...member.bodyMeasurements },
+          previousWeights: member.previousWeights || [],
+          photo: member.photo ?? null,
         };
         setInitialValues(formatted);
-      } catch {
-        setError('Failed to fetch member data.');
-        setTimeout(() => setError(''), 1000);
+      } catch (err) {
+        console.error('Fetch member error:', err);
+        toast.error('❌ Failed to fetch member data.');
       }
     };
-
     fetchMember();
   }, [id, isEdit]);
 
@@ -77,42 +84,43 @@ const MemberForm = () => {
     membershipStartDate: Yup.date().required('Start date is required'),
     paidFee: Yup.number().required('Paid fee is required'),
     mobileNumber: Yup.string().matches(/^[0-9]{10}$/, 'Enter valid 10-digit number').required(),
-    emergencyContactNumber: Yup.string().matches(/^[0-9]{10}$/, 'Enter valid 10-digit number').required()
+    emergencyContactNumber: Yup.string().matches(/^[0-9]{10}$/, 'Enter valid 10-digit number').required(),
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       const formData = new FormData();
-      for (let key in values) {
-        if (key === 'bodyMeasurements') {
-          for (let subKey in values.bodyMeasurements) {
-            formData.append(`bodyMeasurements[${subKey}]`, values.bodyMeasurements[subKey]);
-          }
-        } else if (key === 'photo' && values.photo instanceof File) {
-          formData.append('photo', values.photo);
-        } else {
-          formData.append(key, values[key]);
-        }
-      }
-      formData.append('membershipEndDate', calculateEndDate(values.membershipStartDate, values.membershipDuration));
+      const cleanedValues = {
+        ...values,
+        membershipDuration: Number(values.membershipDuration) || 1,
+        paidFee: Number(values.paidFee) || 0,
+        pendingFee: Number(values.pendingFee) || 0,
+      };
+
+      const endDate = new Date(cleanedValues.membershipStartDate);
+      endDate.setMonth(endDate.getMonth() + Number(cleanedValues.membershipDuration));
+      cleanedValues.membershipEndDate = endDate.toISOString();
+
+      Object.entries(cleanedValues).forEach(([key, value]) => {
+        if (key === 'photo' && value instanceof File) formData.append(key, value);
+        else if (typeof value === 'object' && value !== null)
+          formData.append(key, JSON.stringify(value));
+        else formData.append(key, value);
+      });
 
       if (isEdit) {
         await updateMember(id, formData);
-        setSuccess('Member updated successfully!');
+        toast.success('✅ Member updated successfully!');
       } else {
         await createMember(formData);
-        setSuccess('Member registered successfully!');
-        resetForm();
+        toast.success('✅ Member registered successfully!');
       }
 
-      setTimeout(() => {
-        setSuccess('');
-        navigate('/members');
-      }, 1500);
+      resetForm();
+      setTimeout(() => navigate('/members'), 1500);
     } catch (err) {
-      console.error(err);
-      setError('Failed to save member data.');
-      setTimeout(() => setError(''), 1000);
+      console.error('Error saving member:', JSON.stringify(err.response?.data, null, 2) || err.message);
+      toast.error('❌ Failed to save member data.');
     } finally {
       setSubmitting(false);
     }
@@ -120,15 +128,11 @@ const MemberForm = () => {
 
   return (
     <div className="container my-5">
-      <h3 className="mb-4 text-center">{isEdit ? 'Edit Member' : 'Register Member'}</h3>
+      <h3 className="mb-4 text-center text-primary">
+        {isEdit ? 'Edit Member' : 'Register Member'}
+      </h3>
 
-      {(success || error) && (
-        <div style={{ position: 'fixed', top: '40%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, minWidth: '300px', textAlign: 'center' }}>
-          <Alert variant={success ? 'success' : 'danger'}>{success || error}</Alert>
-        </div>
-      )}
-
-      <Card>
+      <Card className="shadow-lg rounded-4 border-0 bg-light">
         <Card.Body>
           <Formik
             initialValues={initialValues}
@@ -138,96 +142,156 @@ const MemberForm = () => {
           >
             {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, setFieldValue }) => (
               <Form onSubmit={handleSubmit}>
-                {[ // Regular fields
-                  { label: 'Name', name: 'name', type: 'text' },
-                  { label: 'Date of Birth', name: 'dob', type: 'date' },
-                  { label: 'Mobile Number', name: 'mobileNumber', type: 'text' },
-                  { label: 'Emergency Contact', name: 'emergencyContactNumber', type: 'text' },
-                  { label: 'Address', name: 'address', type: 'textarea' },
-                  { label: 'Health Conditions', name: 'healthConditions', type: 'textarea' },
-                  { label: 'Workout Plan', name: 'workoutPlan', type: 'textarea' },
-                  { label: 'Body Weight (kg)', name: 'bodyWeight', type: 'number' },
-                  { label: 'Chest (cm)', name: 'bodyMeasurements.chest', type: 'number' },
-                  { label: 'Waist (cm)', name: 'bodyMeasurements.waist', type: 'number' },
-                  { label: 'Hips (cm)', name: 'bodyMeasurements.hips', type: 'number' },
-                  { label: 'Abs (cm)', name: 'bodyMeasurements.abs', type: 'number' },
-                  { label: 'Arms (cm)', name: 'bodyMeasurements.arms', type: 'number' },
-                  { label: 'Membership Duration (months)', name: 'membershipDuration', type: 'number' },
-                  { label: 'Start Date', name: 'membershipStartDate', type: 'date' },
-                  { label: 'Paid Fee', name: 'paidFee', type: 'number' },
-                  { label: 'Pending Fee', name: 'pendingFee', type: 'number' }
-                ].map(({ label, name, type }) => {
-                  const value = name.includes('.') ? name.split('.').reduce((obj, key) => obj?.[key] ?? '', values) : values[name];
-                  const error = name.includes('.') ? null : errors[name];
-                  const touch = name.includes('.') ? null : touched[name];
-
-                  return (
-                    <Form.Group className="mb-3 d-flex align-items-center" key={name}>
-                      <Form.Label className="me-3" style={{ minWidth: '250px', fontWeight: 'bold' }}>{label} -</Form.Label>
-                      {type === 'textarea' ? (
-                        <Form.Control
-                          as="textarea"
-                          rows={2}
-                          name={name}
-                          value={value}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          isInvalid={touch && error}
-                        />
-                      ) : (
-                        <Form.Control
-                          type={type}
-                          name={name}
-                          value={value}
-                          onChange={(e) => {
-                            if (name.includes('.')) {
-                              const [parent, child] = name.split('.');
-                              setFieldValue(`${parent}.${child}`, e.target.value);
-                            } else {
-                              handleChange(e);
-                            }
-                          }}
-                          onBlur={handleBlur}
-                          isInvalid={touch && error}
-                        />
-                      )}
-                      {error && touch && <Form.Control.Feedback type="invalid">{error}</Form.Control.Feedback>}
+                {/* Personal Info */}
+                <h5 className="mb-3 text-dark">Personal Information</h5>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Name</Form.Label>
+                      <Form.Control type="text" name="name" value={values.name} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.name && errors.name} />
+                      <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                     </Form.Group>
-                  );
-                })}
-
-                {/* File Upload */}
-                <Form.Group className="mb-3 d-flex align-items-center">
-                  <Form.Label className="me-3" style={{ minWidth: '250px', fontWeight: 'bold' }}>Photo -</Form.Label>
-                  <Form.Control
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    onChange={(e) => setFieldValue('photo', e.currentTarget.files[0])}
-                  />
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Date of Birth</Form.Label>
+                      <Form.Control type="date" name="dob" value={values.dob} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.dob && errors.dob} />
+                      <Form.Control.Feedback type="invalid">{errors.dob}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Mobile Number</Form.Label>
+                      <Form.Control type="text" name="mobileNumber" value={values.mobileNumber} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.mobileNumber && errors.mobileNumber} />
+                      <Form.Control.Feedback type="invalid">{errors.mobileNumber}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Emergency Contact</Form.Label>
+                      <Form.Control type="text" name="emergencyContactNumber" value={values.emergencyContactNumber} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.emergencyContactNumber && errors.emergencyContactNumber} />
+                      <Form.Control.Feedback type="invalid">{errors.emergencyContactNumber}</Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Form.Group className="mb-3">
+                  <Form.Label>Address</Form.Label>
+                  <Form.Control as="textarea" rows={2} name="address" value={values.address} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.address && errors.address} />
+                  <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Health Conditions</Form.Label>
+                  <Form.Control as="textarea" rows={2} name="healthConditions" value={values.healthConditions} onChange={handleChange} />
                 </Form.Group>
 
-                {isEdit && typeof values.photo === 'string' && (
-                  <img
-                    src={getPhotoUrl(values.photo)}
-                    alt="Current"
-                    width={100}
-                    className="mb-3"
-                  />
-                )}
+                {/* Body Measurements & Weight */}
+                <h5 className="mt-4 mb-3 text-dark">Body Measurements & Weight</h5>
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Body Weight (kg)</Form.Label>
+                      <Form.Control type="number" name="bodyWeight" value={values.bodyWeight || ''} onChange={handleChange} />
+                    </Form.Group>
+                  </Col>
+                  {['chest', 'waist', 'hips', 'abs', 'arms'].map((part) => (
+                    <Col md={4} key={part}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>{part.charAt(0).toUpperCase() + part.slice(1)} (cm)</Form.Label>
+                        <Form.Control
+                          type="number"
+                          name={`bodyMeasurements.${part}`}
+                          value={values.bodyMeasurements[part] || ''}
+                          onChange={(e) => setFieldValue(`bodyMeasurements.${part}`, e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+                  ))}
+                </Row>
 
-                <Form.Group className="mb-3 d-flex align-items-center">
-                  <Form.Label className="me-3" style={{ minWidth: '250px', fontWeight: 'bold' }}>End Date -</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={calculateEndDate(values.membershipStartDate, values.membershipDuration)}
-                    readOnly
-                    disabled
-                  />
-                </Form.Group>
+                {/* Membership & Fees */}
+                <h5 className="mt-4 mb-3 text-dark">Membership & Fees</h5>
+                <Row className="align-items-center mb-3">
+                  <Col md={3}>
+                    <Badge
+                      bg={getMembershipStatus(values.membershipStartDate, values.membershipDuration) === 'Active' ? 'success' : 'danger'}
+                      className="p-2 fs-6"
+                    >
+                      {getMembershipStatus(values.membershipStartDate, values.membershipDuration)}
+                    </Badge>
+                  </Col>
+                  <Col md={3}>
+                    <Badge
+                      bg={getFeeStatus(values.paidFee, values.pendingFee) === 'Paid' ? 'primary' : 'warning'}
+                      className="p-2 fs-6 text-dark"
+                    >
+                      {getFeeStatus(values.paidFee, values.pendingFee)}
+                    </Badge>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Membership Duration (months)</Form.Label>
+                      <Form.Control type="number" name="membershipDuration" value={values.membershipDuration} onChange={handleChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Start Date</Form.Label>
+                      <Form.Control type="date" name="membershipStartDate" value={values.membershipStartDate} onChange={handleChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={4}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>End Date</Form.Label>
+                      <Form.Control type="date" value={calculateEndDate(values.membershipStartDate, values.membershipDuration)} readOnly disabled />
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Paid Fee</Form.Label>
+                      <Form.Control type="number" name="paidFee" value={values.paidFee} onChange={handleChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Pending Fee</Form.Label>
+                      <Form.Control type="number" name="pendingFee" value={values.pendingFee} onChange={handleChange} />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-                <div className="text-end">
-                  <Button variant="secondary" className="me-2" onClick={() => navigate('/members')}>Cancel</Button>
+                {/* Workout & Photo */}
+                <h5 className="mt-4 mb-3 text-dark">Workout Plan & Photo</h5>
+                <Row>
+                  <Col md={8}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Workout Plan</Form.Label>
+                      <Form.Control as="textarea" rows={2} name="workoutPlan" value={values.workoutPlan} onChange={handleChange} />
+                    </Form.Group>
+                  </Col>
+                  <Col md={4} className="text-center">
+                    <Form.Group className="mb-3">
+                      <Form.Label>Photo</Form.Label>
+                      <Form.Control type="file" name="photo" accept="image/*" onChange={(e) => setFieldValue('photo', e.currentTarget.files[0])} />
+                      <img
+                        src={values.photo ? getMemberImageUrl(values.photo) : '/fallback.png'}
+                        alt="Current"
+                        width={120}
+                        className="mt-2 rounded-circle border border-primary"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <div className="text-end mt-3">
+                  <Button variant="secondary" className="me-2" onClick={() => navigate('/members')}>
+                    Cancel
+                  </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : isEdit ? 'Update Member' : 'Register Member'}
                   </Button>
