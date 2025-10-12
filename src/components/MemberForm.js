@@ -275,17 +275,43 @@ const MemberForm = () => {
                     </Form.Group>
                   </Col>
                   <Col md={4} className="text-center">
-                    <Form.Group className="mb-3">
-                      <Form.Label>Photo</Form.Label>
-                      <Form.Control type="file" name="photo" accept="image/*" onChange={(e) => setFieldValue('photo', e.currentTarget.files[0])} />
-                      <img
-                        src={values.photo ? getMemberImageUrl(values.photo) : '/fallback.png'}
-                        alt="Current"
-                        width={120}
-                        className="mt-2 rounded-circle border border-primary"
-                      />
-                    </Form.Group>
-                  </Col>
+  <Form.Group className="mb-3">
+    <Form.Label>Photo</Form.Label>
+    <Form.Control
+      type="file"
+      name="photo"
+      accept="image/jpeg,image/png"
+      onChange={(e) => {
+        const file = e.currentTarget.files[0];
+        if (file) {
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+          const maxSize = 1 * 1024 * 1024; // 1MB
+
+          if (!allowedTypes.includes(file.type)) {
+            toast.warning('⚠️ Only JPG or PNG images are allowed.');
+            e.target.value = ''; // reset input
+            return;
+          }
+
+          if (file.size > maxSize) {
+            toast.warning('⚠️ Image must be smaller than 1MB.');
+            e.target.value = ''; // reset input
+            return;
+          }
+
+          setFieldValue('photo', file);
+        }
+      }}
+    />
+    <img
+      src={values.photo ? getMemberImageUrl(values.photo) : '/fallback.png'}
+      alt="Current"
+      width={120}
+      className="mt-2 rounded-circle border border-primary"
+    />
+  </Form.Group>
+</Col>
+
                 </Row>
 
                 <div className="text-end mt-3">
