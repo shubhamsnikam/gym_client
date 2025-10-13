@@ -48,7 +48,9 @@ const MemberDetails = () => {
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
     const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+    return isNaN(date.getTime())
+      ? 'N/A'
+      : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   const handleRenew = async () => {
@@ -97,6 +99,12 @@ const MemberDetails = () => {
   const startDate = new Date(member.membershipStartDate);
   const endDate = new Date(member.membershipEndDate);
   const today = new Date();
+
+  // ✅ Fix: Ensure consistent timezone handling (local midnight)
+  endDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const isExpired = endDate < today;
   const totalDuration = endDate - startDate;
   const elapsed = today - startDate;
   const progress =
@@ -107,7 +115,6 @@ const MemberDetails = () => {
       className="page-content"
       style={{ paddingTop: '70px', maxWidth: '960px', margin: 'auto' }}
     >
-      {/* Toast Container */}
       <ToastContainer position="top-center" autoClose={2000} theme="colored" />
 
       <Card className="mt-3 shadow-lg border-0 rounded-4">
@@ -123,35 +130,41 @@ const MemberDetails = () => {
                   style={{ width: '160px', height: '160px', objectFit: 'cover' }}
                 />
                 <Badge
-                  bg="success"
+                  bg={isExpired ? 'danger' : 'success'}
                   pill
                   className="position-absolute top-0 start-100 translate-middle"
                   style={{ fontSize: '0.8rem' }}
                 >
-                  Active
+                  {isExpired ? 'Expired' : 'Active'}
                 </Badge>
               </div>
+
               <h3 className="mt-3">{member.name}</h3>
               <p className="text-muted">{member.workoutPlan || 'No Plan Assigned'}</p>
 
-              {/* Body Weight Card */}
               <Card className="mt-3 shadow-sm border-0 bg-light text-center">
                 <Card.Body>
                   <h6 className="text-muted">Body Weight</h6>
                   <h3>{member.bodyWeight ?? 'N/A'} kg</h3>
-                  <Button variant="primary" size="sm" onClick={() => setShowWeightModal(true)}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setShowWeightModal(true)}
+                  >
                     ⚖️ Update Weight
                   </Button>
                 </Card.Body>
               </Card>
 
-              {/* Previous Weights */}
               {member.previousWeights?.length > 0 && (
                 <Card className="mt-3 shadow-sm p-3">
                   <h6>Previous Weights</h6>
                   <ul className="list-group list-group-flush">
                     {member.previousWeights.map((entry, idx) => (
-                      <li key={idx} className="list-group-item d-flex justify-content-between">
+                      <li
+                        key={idx}
+                        className="list-group-item d-flex justify-content-between"
+                      >
                         <span>{new Date(entry.date).toLocaleDateString()}</span>
                         <span>{entry.weight} kg</span>
                       </li>
@@ -163,16 +176,20 @@ const MemberDetails = () => {
 
             {/* Details Column */}
             <Col md={8}>
-              {/* Membership & Fee Cards */}
               <Row className="mb-3">
                 <Col md={6}>
                   <Card className="mb-3 shadow-sm border-0 bg-light">
                     <Card.Body>
                       <h6 className="text-muted">Membership</h6>
                       <h5>
-                        {formatDate(member.membershipStartDate)} - {formatDate(member.membershipEndDate)}
+                        {formatDate(member.membershipStartDate)} -{' '}
+                        {formatDate(member.membershipEndDate)}
                       </h5>
-                      <ProgressBar now={progress} label={`${Math.round(progress)}%`} className="mt-2" />
+                      <ProgressBar
+                        now={progress}
+                        label={`${Math.round(progress)}%`}
+                        className="mt-2"
+                      />
                     </Card.Body>
                   </Card>
                 </Col>
@@ -190,7 +207,6 @@ const MemberDetails = () => {
                 </Col>
               </Row>
 
-              {/* Other Details */}
               <Row>
                 <Col md={6} className="mb-3">
                   <Card className="shadow-sm border-0 bg-white">
@@ -201,7 +217,8 @@ const MemberDetails = () => {
                           <strong>Mobile:</strong> {member.mobileNumber ?? 'N/A'}
                         </ListGroup.Item>
                         <ListGroup.Item>
-                          <strong>Emergency:</strong> {member.emergencyContactNumber ?? 'N/A'}
+                          <strong>Emergency:</strong>{' '}
+                          {member.emergencyContactNumber ?? 'N/A'}
                         </ListGroup.Item>
                         <ListGroup.Item>
                           <strong>Address:</strong> {member.address ?? 'N/A'}
@@ -218,14 +235,21 @@ const MemberDetails = () => {
                       <ListGroup variant="flush">
                         <ListGroup.Item>
                           <strong>Health Conditions:</strong>{' '}
-                          <Badge bg="info">{member.healthConditions || 'None'}</Badge>
+                          <Badge bg="info">
+                            {member.healthConditions || 'None'}
+                          </Badge>
                         </ListGroup.Item>
                         <ListGroup.Item>
                           <strong>Workout Plan:</strong>{' '}
-                          <Badge bg="secondary">{member.workoutPlan || 'N/A'}</Badge>
+                          <Badge bg="secondary">
+                            {member.workoutPlan || 'N/A'}
+                          </Badge>
                         </ListGroup.Item>
                         <ListGroup.Item>
-                          <strong>Duration:</strong> <Badge bg="success">{member.membershipDuration} mo</Badge>
+                          <strong>Duration:</strong>{' '}
+                          <Badge bg="success">
+                            {member.membershipDuration} mo
+                          </Badge>
                         </ListGroup.Item>
                       </ListGroup>
                     </Card.Body>
@@ -233,14 +257,15 @@ const MemberDetails = () => {
                 </Col>
               </Row>
 
-              {/* Body Measurements */}
               <Row>
                 {['Chest', 'Waist', 'Hips', 'Abs', 'Arms'].map((part) => (
                   <Col md={4} key={part} className="mb-3">
                     <Card className="shadow-sm border-0 bg-white text-center">
                       <Card.Body>
                         <h6 className="text-muted">{part}</h6>
-                        <h5>{member.bodyMeasurements?.[part.toLowerCase()] ?? 'N/A'} cm</h5>
+                        <h5>
+                          {member.bodyMeasurements?.[part.toLowerCase()] ?? 'N/A'} cm
+                        </h5>
                       </Card.Body>
                     </Card>
                   </Col>
@@ -268,7 +293,10 @@ const MemberDetails = () => {
         <Modal.Body>
           <Form.Group>
             <Form.Label>Duration (months):</Form.Label>
-            <Form.Select value={renewMonths} onChange={(e) => setRenewMonths(Number(e.target.value))}>
+            <Form.Select
+              value={renewMonths}
+              onChange={(e) => setRenewMonths(Number(e.target.value))}
+            >
               {[1, 3, 6, 12].map((m) => (
                 <option key={m} value={m}>
                   {m} Month{m > 1 ? 's' : ''}
