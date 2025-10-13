@@ -50,15 +50,25 @@ const MembersList = () => {
     }
   };
 
+  // ✅ Timezone-safe date formatter (no UTC shift)
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    if (isNaN(date.getTime())) return 'N/A';
+
+    // Convert UTC date to local midnight for display
+    const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+    return localDate.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
-  const filteredMembers = members.filter((member) =>
-    member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.mobileNumber?.includes(searchTerm)
+  const filteredMembers = members.filter(
+    (member) =>
+      member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.mobileNumber?.includes(searchTerm)
   );
 
   return (
@@ -80,7 +90,7 @@ const MembersList = () => {
             transform: 'translate(-50%, -50%)',
             zIndex: 9999,
             minWidth: '300px',
-            textAlign: 'center'
+            textAlign: 'center',
           }}
         >
           {success || error}
@@ -123,8 +133,15 @@ const MembersList = () => {
                 </thead>
                 <tbody>
                   {filteredMembers.map((member) => {
-                    const isExpired = new Date(member.membershipEndDate) < new Date();
                     const photoUrl = getPhotoUrl(member.photo);
+
+                    // ✅ Local midnight fix for consistent status
+                    const endDate = new Date(member.membershipEndDate);
+                    const today = new Date();
+                    endDate.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+
+                    const isExpired = endDate < today;
 
                     return (
                       <tr key={member._id}>
@@ -148,6 +165,7 @@ const MembersList = () => {
                         </td>
                         <td>{member.name}</td>
                         <td>{member.mobileNumber}</td>
+                        {/* ✅ Correct local end date */}
                         <td>{formatDate(member.membershipEndDate)}</td>
                         <td>
                           <span className={`badge ${isExpired ? 'bg-danger' : 'bg-success'}`}>
@@ -157,10 +175,14 @@ const MembersList = () => {
                         <td>
                           <div className="d-flex gap-2">
                             <Link to={`/members/${member._id}`}>
-                              <Button variant="success" size="sm">View</Button>
+                              <Button variant="success" size="sm">
+                                View
+                              </Button>
                             </Link>
                             <Link to={`/members/edit/${member._id}`}>
-                              <Button variant="primary" size="sm">Edit</Button>
+                              <Button variant="primary" size="sm">
+                                Edit
+                              </Button>
                             </Link>
                             <Button
                               variant={confirmDelete === member._id ? 'danger' : 'outline-danger'}
