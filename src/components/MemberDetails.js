@@ -276,9 +276,7 @@ const MemberDetails = () => {
                 <Button variant="secondary" onClick={() => navigate('/members')}>
                   ← Back to Members
                 </Button>
-                <Button variant="warning" onClick={() => setShowRenewModal(true)}>
-                  🔁 Renew Membership
-                </Button>
+               
               </div>
             </Col>
           </Row>
