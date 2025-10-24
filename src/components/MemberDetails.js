@@ -32,18 +32,19 @@ const MemberDetails = () => {
   const [updatingWeight, setUpdatingWeight] = useState(false);
 
   useEffect(() => {
-    const fetchMember = async () => {
-      try {
-        const fetchedMember = await getMemberById(id);
-        setMember(fetchedMember);
-      } catch (err) {
-        toast.error('Failed to fetch member details.');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMember();
   }, [id]);
+
+  const fetchMember = async () => {
+    try {
+      const fetchedMember = await getMemberById(id);
+      setMember(fetchedMember);
+    } catch {
+      toast.error('Failed to fetch member details.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
@@ -61,9 +62,8 @@ const MemberDetails = () => {
       await updateMember(id, formData);
       setShowRenewModal(false);
       toast.success(`Membership renewed for ${renewMonths} month(s)!`);
-      const updated = await getMemberById(id);
-      setMember(updated);
-    } catch (err) {
+      await fetchMember();
+    } catch {
       toast.error('Failed to renew membership.');
     } finally {
       setRenewing(false);
@@ -80,47 +80,39 @@ const MemberDetails = () => {
       const formData = new FormData();
       formData.append('bodyWeight', newWeight);
       await updateMember(id, formData);
-      setShowWeightModal(false);
       toast.success(`Body weight updated to ${newWeight} kg successfully!`);
-      const updated = await getMemberById(id);
-      setMember(updated);
+      await fetchMember();
+      setShowWeightModal(false);
       setNewWeight('');
-    } catch (err) {
+    } catch {
       toast.error('Failed to update weight.');
     } finally {
       setUpdatingWeight(false);
     }
   };
 
-  if (loading)
-    return <Spinner animation="border" className="mt-5 mx-auto d-block" />;
+  if (loading) return <Spinner animation="border" className="mt-5 mx-auto d-block" />;
   if (!member) return null;
 
   const startDate = new Date(member.membershipStartDate);
   const endDate = new Date(member.membershipEndDate);
   const today = new Date();
-
-  // ✅ Fix: Ensure consistent timezone handling (local midnight)
   endDate.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
-
   const isExpired = endDate < today;
+
   const totalDuration = endDate - startDate;
   const elapsed = today - startDate;
-  const progress =
-    totalDuration > 0 ? Math.min((elapsed / totalDuration) * 100, 100) : 0;
+  const progress = totalDuration > 0 ? Math.min((elapsed / totalDuration) * 100, 100) : 0;
 
   return (
-    <div
-      className="page-content"
-      style={{ paddingTop: '70px', maxWidth: '960px', margin: 'auto' }}
-    >
+    <div className="page-content" style={{ paddingTop: '70px', maxWidth: '960px', margin: 'auto' }}>
       <ToastContainer position="top-center" autoClose={2000} theme="colored" />
 
       <Card className="mt-3 shadow-lg border-0 rounded-4">
         <Card.Body className="p-4">
           <Row className="align-items-start">
-            {/* Photo & Weight Column */}
+            {/* --- Photo & Weight --- */}
             <Col md={4} className="text-center">
               <div className="position-relative d-inline-block">
                 <img
@@ -128,6 +120,9 @@ const MemberDetails = () => {
                   alt="Profile"
                   className="rounded-circle shadow"
                   style={{ width: '160px', height: '160px', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/160?text=No+Image';
+                  }}
                 />
                 <Badge
                   bg={isExpired ? 'danger' : 'success'}
@@ -146,11 +141,7 @@ const MemberDetails = () => {
                 <Card.Body>
                   <h6 className="text-muted">Body Weight</h6>
                   <h3>{member.bodyWeight ?? 'N/A'} kg</h3>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setShowWeightModal(true)}
-                  >
+                  <Button variant="primary" size="sm" onClick={() => setShowWeightModal(true)}>
                     ⚖️ Update Weight
                   </Button>
                 </Card.Body>
@@ -161,10 +152,7 @@ const MemberDetails = () => {
                   <h6>Previous Weights</h6>
                   <ul className="list-group list-group-flush">
                     {member.previousWeights.map((entry, idx) => (
-                      <li
-                        key={idx}
-                        className="list-group-item d-flex justify-content-between"
-                      >
+                      <li key={idx} className="list-group-item d-flex justify-content-between">
                         <span>{new Date(entry.date).toLocaleDateString()}</span>
                         <span>{entry.weight} kg</span>
                       </li>
@@ -174,7 +162,7 @@ const MemberDetails = () => {
               )}
             </Col>
 
-            {/* Details Column */}
+            {/* --- Details --- */}
             <Col md={8}>
               <Row className="mb-3">
                 <Col md={6}>
@@ -182,14 +170,9 @@ const MemberDetails = () => {
                     <Card.Body>
                       <h6 className="text-muted">Membership</h6>
                       <h5>
-                        {formatDate(member.membershipStartDate)} -{' '}
-                        {formatDate(member.membershipEndDate)}
+                        {formatDate(member.membershipStartDate)} – {formatDate(member.membershipEndDate)}
                       </h5>
-                      <ProgressBar
-                        now={progress}
-                        label={`${Math.round(progress)}%`}
-                        className="mt-2"
-                      />
+                      <ProgressBar now={progress} label={`${Math.round(progress)}%`} className="mt-2" />
                     </Card.Body>
                   </Card>
                 </Col>
@@ -217,8 +200,7 @@ const MemberDetails = () => {
                           <strong>Mobile:</strong> {member.mobileNumber ?? 'N/A'}
                         </ListGroup.Item>
                         <ListGroup.Item>
-                          <strong>Emergency:</strong>{' '}
-                          {member.emergencyContactNumber ?? 'N/A'}
+                          <strong>Emergency:</strong> {member.emergencyContactNumber ?? 'N/A'}
                         </ListGroup.Item>
                         <ListGroup.Item>
                           <strong>Address:</strong> {member.address ?? 'N/A'}
@@ -235,21 +217,15 @@ const MemberDetails = () => {
                       <ListGroup variant="flush">
                         <ListGroup.Item>
                           <strong>Health Conditions:</strong>{' '}
-                          <Badge bg="info">
-                            {member.healthConditions || 'None'}
-                          </Badge>
+                          <Badge bg="info">{member.healthConditions || 'None'}</Badge>
                         </ListGroup.Item>
                         <ListGroup.Item>
                           <strong>Workout Plan:</strong>{' '}
-                          <Badge bg="secondary">
-                            {member.workoutPlan || 'N/A'}
-                          </Badge>
+                          <Badge bg="secondary">{member.workoutPlan || 'N/A'}</Badge>
                         </ListGroup.Item>
                         <ListGroup.Item>
                           <strong>Duration:</strong>{' '}
-                          <Badge bg="success">
-                            {member.membershipDuration} mo
-                          </Badge>
+                          <Badge bg="success">{member.membershipDuration} mo</Badge>
                         </ListGroup.Item>
                       </ListGroup>
                     </Card.Body>
@@ -263,9 +239,7 @@ const MemberDetails = () => {
                     <Card className="shadow-sm border-0 bg-white text-center">
                       <Card.Body>
                         <h6 className="text-muted">{part}</h6>
-                        <h5>
-                          {member.bodyMeasurements?.[part.toLowerCase()] ?? 'N/A'} cm
-                        </h5>
+                        <h5>{member.bodyMeasurements?.[part.toLowerCase()] ?? 'N/A'} cm</h5>
                       </Card.Body>
                     </Card>
                   </Col>
@@ -276,14 +250,16 @@ const MemberDetails = () => {
                 <Button variant="secondary" onClick={() => navigate('/members')}>
                   ← Back to Members
                 </Button>
-               
+                <Button variant="warning" onClick={() => setShowRenewModal(true)}>
+                  🔁 Renew Membership
+                </Button>
               </div>
             </Col>
           </Row>
         </Card.Body>
       </Card>
 
-      {/* Renew Modal */}
+      {/* --- Renew Modal --- */}
       <Modal show={showRenewModal} onHide={() => setShowRenewModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Renew Membership</Modal.Title>
@@ -291,10 +267,7 @@ const MemberDetails = () => {
         <Modal.Body>
           <Form.Group>
             <Form.Label>Duration (months):</Form.Label>
-            <Form.Select
-              value={renewMonths}
-              onChange={(e) => setRenewMonths(Number(e.target.value))}
-            >
+            <Form.Select value={renewMonths} onChange={(e) => setRenewMonths(Number(e.target.value))}>
               {[1, 3, 6, 12].map((m) => (
                 <option key={m} value={m}>
                   {m} Month{m > 1 ? 's' : ''}
@@ -313,7 +286,7 @@ const MemberDetails = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Weight Modal */}
+      {/* --- Weight Modal --- */}
       <Modal show={showWeightModal} onHide={() => setShowWeightModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Update Weight</Modal.Title>
