@@ -25,8 +25,8 @@ const MembersList = () => {
       setMembers(data);
       setError('');
     } catch (err) {
-      setError('Failed to fetch members');
       console.error(err);
+      setError('Failed to fetch members');
     } finally {
       setLoading(false);
     }
@@ -36,13 +36,13 @@ const MembersList = () => {
     if (confirmDelete === id) {
       try {
         await deleteMember(id);
-        setMembers(members.filter((m) => m._id !== id));
+        setMembers((prev) => prev.filter((m) => m._id !== id));
         setSuccess('Member deleted successfully');
         setConfirmDelete(null);
         setTimeout(() => setSuccess(''), 2000);
       } catch (err) {
-        setError('Failed to delete member');
         console.error(err);
+        setError('Failed to delete member');
         setTimeout(() => setError(''), 2000);
       }
     } else {
@@ -50,15 +50,12 @@ const MembersList = () => {
     }
   };
 
-  // ✅ Timezone-safe date formatter (no UTC shift)
+  // ✅ Consistent local date formatting (avoids timezone offset issues)
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'N/A';
-
-    // Convert UTC date to local midnight for display
-    const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-    return localDate.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -97,7 +94,7 @@ const MembersList = () => {
         </Alert>
       )}
 
-      <Card className="mb-4">
+      <Card className="mb-4 shadow-sm border-0">
         <Card.Body>
           <InputGroup className="mb-3">
             <Form.Control
@@ -134,13 +131,10 @@ const MembersList = () => {
                 <tbody>
                   {filteredMembers.map((member) => {
                     const photoUrl = getPhotoUrl(member.photo);
-
-                    // ✅ Local midnight fix for consistent status
                     const endDate = new Date(member.membershipEndDate);
                     const today = new Date();
                     endDate.setHours(0, 0, 0, 0);
                     today.setHours(0, 0, 0, 0);
-
                     const isExpired = endDate < today;
 
                     return (
@@ -150,6 +144,10 @@ const MembersList = () => {
                             src={photoUrl}
                             alt="Profile"
                             title="Click to preview"
+                            onClick={() => {
+                              setPreviewUrl(photoUrl);
+                              setShowPreview(true);
+                            }}
                             style={{
                               width: '40px',
                               height: '40px',
@@ -157,15 +155,13 @@ const MembersList = () => {
                               borderRadius: '50%',
                               cursor: 'pointer',
                             }}
-                            onClick={() => {
-                              setPreviewUrl(photoUrl);
-                              setShowPreview(true);
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/40?text=No+Img';
                             }}
                           />
                         </td>
                         <td>{member.name}</td>
                         <td>{member.mobileNumber}</td>
-                        {/* ✅ Correct local end date */}
                         <td>{formatDate(member.membershipEndDate)}</td>
                         <td>
                           <span className={`badge ${isExpired ? 'bg-danger' : 'bg-success'}`}>
@@ -203,7 +199,7 @@ const MembersList = () => {
         </Card.Body>
       </Card>
 
-      {/* Modal for image preview */}
+      {/* Image preview modal */}
       <Modal show={showPreview} onHide={() => setShowPreview(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Profile Photo</Modal.Title>
@@ -213,6 +209,9 @@ const MembersList = () => {
             src={previewUrl}
             alt="Preview"
             style={{ width: '100%', maxHeight: '600px', objectFit: 'contain' }}
+            onError={(e) => {
+              e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+            }}
           />
         </Modal.Body>
       </Modal>
