@@ -3,8 +3,9 @@ import { Form, Button, Card, Row, Col, Badge } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { createMember, getMemberById, updateMember, getMemberImageUrl } from '../services/api';
+import { createMember, getMemberById, updateMember } from '../services/api';
 import { toast } from 'react-toastify';
+import { getPhotoUrl } from '../utils/photoUrl';
 
 const MemberForm = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const MemberForm = () => {
   };
 
   const [initialValues, setInitialValues] = useState(defaultValues);
+  const [previewUrl, setPreviewUrl] = useState('');
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -52,8 +54,10 @@ const MemberForm = () => {
 
   const getFeeStatus = (paid, pending) => (pending > 0 ? 'Pending' : 'Paid');
 
+  // Fetch member data if editing
   useEffect(() => {
     if (!isEdit) return;
+
     const fetchMember = async () => {
       try {
         const member = await getMemberById(id);
@@ -68,6 +72,7 @@ const MemberForm = () => {
           photo: member.photo ?? null,
         };
         setInitialValues(formatted);
+        setPreviewUrl(getPhotoUrl(member.photo));
       } catch (err) {
         console.error('Fetch member error:', err);
         toast.error('❌ Failed to fetch member data.');
@@ -84,7 +89,9 @@ const MemberForm = () => {
     membershipStartDate: Yup.date().required('Start date is required'),
     paidFee: Yup.number().required('Paid fee is required'),
     mobileNumber: Yup.string().matches(/^[0-9]{10}$/, 'Enter valid 10-digit number').required(),
-    emergencyContactNumber: Yup.string().matches(/^[0-9]{10}$/, 'Enter valid 10-digit number').required(),
+    emergencyContactNumber: Yup.string()
+      .matches(/^[0-9]{10}$/, 'Enter valid 10-digit number')
+      .required(),
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -97,12 +104,13 @@ const MemberForm = () => {
         pendingFee: Number(values.pendingFee) || 0,
       };
 
+      // calculate end date
       const endDate = new Date(cleanedValues.membershipStartDate);
       endDate.setMonth(endDate.getMonth() + Number(cleanedValues.membershipDuration));
       cleanedValues.membershipEndDate = endDate.toISOString();
 
       Object.entries(cleanedValues).forEach(([key, value]) => {
-        if (key === 'photo' && value instanceof File) formData.append(key, value);
+        if (key === 'photo' && value instanceof File) formData.append('photo', value);
         else if (typeof value === 'object' && value !== null)
           formData.append(key, JSON.stringify(value));
         else formData.append(key, value);
@@ -119,7 +127,7 @@ const MemberForm = () => {
       resetForm();
       setTimeout(() => navigate('/members'), 1500);
     } catch (err) {
-      console.error('Error saving member:', JSON.stringify(err.response?.data, null, 2) || err.message);
+      console.error('Error saving member:', err.response?.data || err.message);
       toast.error('❌ Failed to save member data.');
     } finally {
       setSubmitting(false);
@@ -148,42 +156,97 @@ const MemberForm = () => {
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>Name</Form.Label>
-                      <Form.Control type="text" name="name" value={values.name} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.name && errors.name} />
-                      <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
+                      <Form.Control
+                        type="text"
+                        name="name"
+                        value={values.name}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        isInvalid={touched.name && errors.name}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.name}
+                      </Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>Date of Birth</Form.Label>
-                      <Form.Control type="date" name="dob" value={values.dob} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.dob && errors.dob} />
-                      <Form.Control.Feedback type="invalid">{errors.dob}</Form.Control.Feedback>
+                      <Form.Control
+                        type="date"
+                        name="dob"
+                        value={values.dob}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        isInvalid={touched.dob && errors.dob}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.dob}
+                      </Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                 </Row>
+
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>Mobile Number</Form.Label>
-                      <Form.Control type="text" name="mobileNumber" value={values.mobileNumber} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.mobileNumber && errors.mobileNumber} />
-                      <Form.Control.Feedback type="invalid">{errors.mobileNumber}</Form.Control.Feedback>
+                      <Form.Control
+                        type="text"
+                        name="mobileNumber"
+                        value={values.mobileNumber}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        isInvalid={touched.mobileNumber && errors.mobileNumber}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.mobileNumber}
+                      </Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>Emergency Contact</Form.Label>
-                      <Form.Control type="text" name="emergencyContactNumber" value={values.emergencyContactNumber} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.emergencyContactNumber && errors.emergencyContactNumber} />
-                      <Form.Control.Feedback type="invalid">{errors.emergencyContactNumber}</Form.Control.Feedback>
+                      <Form.Control
+                        type="text"
+                        name="emergencyContactNumber"
+                        value={values.emergencyContactNumber}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        isInvalid={touched.emergencyContactNumber && errors.emergencyContactNumber}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.emergencyContactNumber}
+                      </Form.Control.Feedback>
                     </Form.Group>
                   </Col>
                 </Row>
+
                 <Form.Group className="mb-3">
                   <Form.Label>Address</Form.Label>
-                  <Form.Control as="textarea" rows={2} name="address" value={values.address} onChange={handleChange} onBlur={handleBlur} isInvalid={touched.address && errors.address} />
-                  <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
+                  <Form.Control
+                    as="textarea"
+                    rows={2}
+                    name="address"
+                    value={values.address}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    isInvalid={touched.address && errors.address}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.address}
+                  </Form.Control.Feedback>
                 </Form.Group>
+
                 <Form.Group className="mb-3">
                   <Form.Label>Health Conditions</Form.Label>
-                  <Form.Control as="textarea" rows={2} name="healthConditions" value={values.healthConditions} onChange={handleChange} />
+                  <Form.Control
+                    as="textarea"
+                    rows={2}
+                    name="healthConditions"
+                    value={values.healthConditions}
+                    onChange={handleChange}
+                  />
                 </Form.Group>
 
                 {/* Body Measurements & Weight */}
@@ -192,7 +255,12 @@ const MemberForm = () => {
                   <Col md={4}>
                     <Form.Group className="mb-3">
                       <Form.Label>Body Weight (kg)</Form.Label>
-                      <Form.Control type="number" name="bodyWeight" value={values.bodyWeight || ''} onChange={handleChange} />
+                      <Form.Control
+                        type="number"
+                        name="bodyWeight"
+                        value={values.bodyWeight || ''}
+                        onChange={handleChange}
+                      />
                     </Form.Group>
                   </Col>
                   {['chest', 'waist', 'hips', 'abs', 'arms'].map((part) => (
@@ -201,9 +269,10 @@ const MemberForm = () => {
                         <Form.Label>{part.charAt(0).toUpperCase() + part.slice(1)} (cm)</Form.Label>
                         <Form.Control
                           type="number"
-                          name={`bodyMeasurements.${part}`}
                           value={values.bodyMeasurements[part] || ''}
-                          onChange={(e) => setFieldValue(`bodyMeasurements.${part}`, e.target.value)}
+                          onChange={(e) =>
+                            setFieldValue(`bodyMeasurements.${part}`, e.target.value)
+                          }
                         />
                       </Form.Group>
                     </Col>
@@ -215,7 +284,12 @@ const MemberForm = () => {
                 <Row className="align-items-center mb-3">
                   <Col md={3}>
                     <Badge
-                      bg={getMembershipStatus(values.membershipStartDate, values.membershipDuration) === 'Active' ? 'success' : 'danger'}
+                      bg={
+                        getMembershipStatus(values.membershipStartDate, values.membershipDuration) ===
+                        'Active'
+                          ? 'success'
+                          : 'danger'
+                      }
                       className="p-2 fs-6"
                     >
                       {getMembershipStatus(values.membershipStartDate, values.membershipDuration)}
@@ -223,44 +297,75 @@ const MemberForm = () => {
                   </Col>
                   <Col md={3}>
                     <Badge
-                      bg={getFeeStatus(values.paidFee, values.pendingFee) === 'Paid' ? 'primary' : 'warning'}
+                      bg={
+                        getFeeStatus(values.paidFee, values.pendingFee) === 'Paid'
+                          ? 'primary'
+                          : 'warning'
+                      }
                       className="p-2 fs-6 text-dark"
                     >
                       {getFeeStatus(values.paidFee, values.pendingFee)}
                     </Badge>
                   </Col>
                 </Row>
+
                 <Row>
                   <Col md={4}>
                     <Form.Group className="mb-3">
                       <Form.Label>Membership Duration (months)</Form.Label>
-                      <Form.Control type="number" name="membershipDuration" value={values.membershipDuration} onChange={handleChange} />
+                      <Form.Control
+                        type="number"
+                        name="membershipDuration"
+                        value={values.membershipDuration}
+                        onChange={handleChange}
+                      />
                     </Form.Group>
                   </Col>
                   <Col md={4}>
                     <Form.Group className="mb-3">
                       <Form.Label>Start Date</Form.Label>
-                      <Form.Control type="date" name="membershipStartDate" value={values.membershipStartDate} onChange={handleChange} />
+                      <Form.Control
+                        type="date"
+                        name="membershipStartDate"
+                        value={values.membershipStartDate}
+                        onChange={handleChange}
+                      />
                     </Form.Group>
                   </Col>
                   <Col md={4}>
                     <Form.Group className="mb-3">
                       <Form.Label>End Date</Form.Label>
-                      <Form.Control type="date" value={calculateEndDate(values.membershipStartDate, values.membershipDuration)} readOnly disabled />
+                      <Form.Control
+                        type="date"
+                        value={calculateEndDate(values.membershipStartDate, values.membershipDuration)}
+                        readOnly
+                        disabled
+                      />
                     </Form.Group>
                   </Col>
                 </Row>
+
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>Paid Fee</Form.Label>
-                      <Form.Control type="number" name="paidFee" value={values.paidFee} onChange={handleChange} />
+                      <Form.Control
+                        type="number"
+                        name="paidFee"
+                        value={values.paidFee}
+                        onChange={handleChange}
+                      />
                     </Form.Group>
                   </Col>
                   <Col md={6}>
                     <Form.Group className="mb-3">
                       <Form.Label>Pending Fee</Form.Label>
-                      <Form.Control type="number" name="pendingFee" value={values.pendingFee} onChange={handleChange} />
+                      <Form.Control
+                        type="number"
+                        name="pendingFee"
+                        value={values.pendingFee}
+                        onChange={handleChange}
+                      />
                     </Form.Group>
                   </Col>
                 </Row>
@@ -271,18 +376,37 @@ const MemberForm = () => {
                   <Col md={8}>
                     <Form.Group className="mb-3">
                       <Form.Label>Workout Plan</Form.Label>
-                      <Form.Control as="textarea" rows={2} name="workoutPlan" value={values.workoutPlan} onChange={handleChange} />
+                      <Form.Control
+                        as="textarea"
+                        rows={2}
+                        name="workoutPlan"
+                        value={values.workoutPlan}
+                        onChange={handleChange}
+                      />
                     </Form.Group>
                   </Col>
+
                   <Col md={4} className="text-center">
                     <Form.Group className="mb-3">
                       <Form.Label>Photo</Form.Label>
-                      <Form.Control type="file" name="photo" accept="image/*" onChange={(e) => setFieldValue('photo', e.currentTarget.files[0])} />
+                      <Form.Control
+                        type="file"
+                        name="photo"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.currentTarget.files[0];
+                          setFieldValue('photo', file);
+                          if (file) setPreviewUrl(URL.createObjectURL(file));
+                        }}
+                      />
                       <img
-                        src={values.photo ? getMemberImageUrl(values.photo) : '/fallback.png'}
-                        alt="Current"
+                        src={previewUrl || getPhotoUrl(values.photo)}
+                        alt="Preview"
                         width={120}
                         className="mt-2 rounded-circle border border-primary"
+                        onError={(e) =>
+                          (e.target.src = 'https://via.placeholder.com/120?text=No+Image')
+                        }
                       />
                     </Form.Group>
                   </Col>
@@ -293,7 +417,11 @@ const MemberForm = () => {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : isEdit ? 'Update Member' : 'Register Member'}
+                    {isSubmitting
+                      ? 'Saving...'
+                      : isEdit
+                      ? 'Update Member'
+                      : 'Register Member'}
                   </Button>
                 </div>
               </Form>
