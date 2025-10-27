@@ -29,7 +29,6 @@ const NavBar = () => {
           {/* Left-aligned nav links */}
           <Nav className= "me-auto  ">
             <Nav.Link as={Link} to="/" className="custom-nav-link">Home</Nav.Link>
-          <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
             <Nav.Link as={Link} to="/members" className="custom-nav-link">Members</Nav.Link>
             <Nav.Link as={Link} to="/help" className="custom-nav-link">Help</Nav.Link>
           </Nav>
