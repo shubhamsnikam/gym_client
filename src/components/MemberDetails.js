@@ -250,41 +250,12 @@ const MemberDetails = () => {
                 <Button variant="secondary" onClick={() => navigate('/members')}>
                   ← Back to Members
                 </Button>
-                <Button variant="warning" onClick={() => setShowRenewModal(true)}>
-                  🔁 Renew Membership
-                </Button>
               </div>
             </Col>
           </Row>
         </Card.Body>
       </Card>
 
-      {/* --- Renew Modal --- */}
-      <Modal show={showRenewModal} onHide={() => setShowRenewModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Renew Membership</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group>
-            <Form.Label>Duration (months):</Form.Label>
-            <Form.Select value={renewMonths} onChange={(e) => setRenewMonths(Number(e.target.value))}>
-              {[1, 3, 6, 12].map((m) => (
-                <option key={m} value={m}>
-                  {m} Month{m > 1 ? 's' : ''}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowRenewModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleRenew} disabled={renewing}>
-            {renewing ? 'Renewing...' : 'Confirm'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
 
       {/* --- Weight Modal --- */}
       <Modal show={showWeightModal} onHide={() => setShowWeightModal(false)} centered>
