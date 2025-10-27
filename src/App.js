@@ -11,6 +11,7 @@ import MemberForm from './components/MemberForm';
 import MemberDetails from './components/MemberDetails';
 import Home from './components/Home';
 import Help from './components/Help';
+import Dashboard from './components/Dashboard';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             <Route path="/members/edit/:id" element={<MemberForm />} />
             <Route path="/members/:id" element={<MemberDetails />} />
             <Route path="/help" element={<Help />} />
+            <Route path="/dashboard" element={<Dashboard/>}/>
           </Routes>
         </div>
       </div>
