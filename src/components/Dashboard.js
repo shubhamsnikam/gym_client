@@ -202,8 +202,7 @@ const Dashboard = () => {
       {/* Footer Note */}
       <div className="text-center text-muted mt-5 small">
         <p>
-          © {new Date().getFullYear()} Sai Fitness Gym | Powered by{" "}
-          <span className="text-primary fw-semibold">Your Gym CRM</span>
+          © {new Date().getFullYear()} Sai Fitness Gym 
         </p>
       </div>
     </div>
@@ -211,3 +210,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
