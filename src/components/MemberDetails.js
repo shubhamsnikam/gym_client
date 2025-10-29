@@ -77,11 +77,12 @@ const MemberDetails = () => {
     <div className="container my-5" style={{ maxWidth: '1100px' }}>
       <ToastContainer position="top-center" theme="colored" />
 
-      {/* === Header Section === */}
+      {/* === Profile Header === */}
       <div
-        className="p-4 rounded-4 shadow text-white mb-4"
+        className="p-4 rounded-4 shadow-sm text-white mb-4"
         style={{
-          background: '#1b1f3b',
+          backgroundColor: '#23395d',
+          border: '1px solid #dcdcdc',
         }}
       >
         <Row className="align-items-center">
@@ -124,7 +125,7 @@ const MemberDetails = () => {
       {/* === Key Stats === */}
       <Row className="g-4 mb-4 text-center">
         <Col md={4}>
-          <Card className="shadow-sm h-100 border-light">
+          <Card className="h-100 shadow-sm" style={{ border: '1px solid #dcdcdc' }}>
             <Card.Body>
               <CalendarDays size={24} className="text-primary mb-2" />
               <h6 className="fw-bold text-dark">Membership Duration</h6>
@@ -137,7 +138,7 @@ const MemberDetails = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="shadow-sm h-100 border-light">
+          <Card className="h-100 shadow-sm" style={{ border: '1px solid #dcdcdc' }}>
             <Card.Body>
               <HeartPulse size={24} className="text-success mb-2" />
               <h6 className="fw-bold text-dark">Health Condition</h6>
@@ -147,7 +148,7 @@ const MemberDetails = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="shadow-sm h-100 border-light">
+          <Card className="h-100 shadow-sm" style={{ border: '1px solid #dcdcdc' }}>
             <Card.Body>
               <Wallet size={24} className="text-warning mb-2" />
               <h6 className="fw-bold text-dark">Fees Summary</h6>
@@ -159,15 +160,15 @@ const MemberDetails = () => {
       </Row>
 
       {/* === Body Measurements === */}
-      <Card className="shadow-sm border-light mb-4">
-        <Card.Header className="bg-primary text-white fw-semibold">
+      <Card className="shadow-sm mb-4" style={{ border: '1px solid #dcdcdc' }}>
+        <Card.Header className="fw-semibold text-dark bg-light border-bottom" style={{ borderColor: '#dcdcdc' }}>
           🏋️ Body Measurements
         </Card.Header>
         <Card.Body>
           <Row>
             {['chest', 'waist', 'hips', 'abs', 'arms'].map((part) => (
               <Col md={4} key={part} className="mb-3">
-                <div className="p-3 bg-light rounded text-center border border-0 shadow-sm">
+                <div className="p-3 bg-white rounded text-center shadow-sm" style={{ border: '1px solid #e2e2e2' }}>
                   <h6 className="text-muted text-uppercase mb-1">{part}</h6>
                   <h5 className="fw-bold text-dark">
                     {member.bodyMeasurements?.[part] || 'N/A'} cm
@@ -180,14 +181,14 @@ const MemberDetails = () => {
       </Card>
 
       {/* === Weight Tracker === */}
-      <Card className="shadow-sm border-light mb-4">
-        <Card.Header className="bg-danger text-white fw-semibold">
+      <Card className="shadow-sm mb-4" style={{ border: '1px solid #dcdcdc' }}>
+        <Card.Header className="fw-semibold text-dark bg-light border-bottom" style={{ borderColor: '#dcdcdc' }}>
           ⚖️ Weight Tracker
         </Card.Header>
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-2">
             <h4 className="fw-bold text-dark">{member.bodyWeight ?? 'N/A'} kg</h4>
-            <Button variant="outline-danger" size="sm" onClick={() => setShowWeightModal(true)}>
+            <Button variant="outline-primary" size="sm" onClick={() => setShowWeightModal(true)}>
               Update Weight
             </Button>
           </div>
@@ -196,7 +197,8 @@ const MemberDetails = () => {
               {member.previousWeights.map((w, i) => (
                 <ListGroup.Item
                   key={i}
-                  className="d-flex justify-content-between border-0 shadow-sm mb-1 rounded"
+                  className="d-flex justify-content-between border-0 mb-1 rounded"
+                  style={{ background: '#f8f9fa', border: '1px solid #e2e2e2' }}
                 >
                   <span>{new Date(w.date).toLocaleDateString()}</span>
                   <span className="fw-semibold">{w.weight} kg</span>
