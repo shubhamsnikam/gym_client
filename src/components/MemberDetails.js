@@ -75,37 +75,37 @@ const MemberDetails = () => {
   if (!member) return null;
 
   return (
-    <div className="container my-5" style={{ maxWidth: '1000px' }}>
+    <div className="container my-5" style={{ maxWidth: '1100px' }}>
       <ToastContainer position="top-center" theme="colored" />
 
-      {/* === Profile Header === */}
+      {/* === Hero Header === */}
       <div
         className="p-4 rounded-4 shadow-lg text-white mb-4"
         style={{
-          background: 'linear-gradient(135deg, #0d6efd 30%, #6610f2 90%)',
+          background: 'linear-gradient(135deg, #dc3545 20%, #212529 90%)',
         }}
       >
         <Row className="align-items-center">
-          <Col md={3} className="text-center">
+          <Col md={3} className="text-center mb-3 mb-md-0">
             <img
               src={getPhotoUrl(member.photo)}
               onError={(e) => (e.target.src = 'https://via.placeholder.com/150?text=No+Image')}
               alt="Member"
-              className="rounded-circle border border-3 border-light shadow"
-              width={140}
-              height={140}
+              className="rounded-circle border border-4 border-light shadow-lg"
+              width={150}
+              height={150}
               style={{ objectFit: 'cover' }}
             />
             <Badge
               bg={expired ? 'danger' : 'success'}
-              className="mt-2 px-3 py-1"
+              className="mt-3 px-3 py-1"
               pill
             >
               {expired ? 'Expired' : 'Active'}
             </Badge>
           </Col>
           <Col md={9}>
-            <h2 className="fw-bold">{member.name}</h2>
+            <h2 className="fw-bold mb-0">{member.name}</h2>
             <p className="mb-1">{member.address}</p>
             <p className="mb-2">
               <Phone size={16} className="me-1" /> {member.mobileNumber}
@@ -114,7 +114,7 @@ const MemberDetails = () => {
               <Badge bg="light" text="dark" className="me-2">
                 <Dumbbell size={14} className="me-1" /> {member.workoutPlan || 'No Plan'}
               </Badge>
-              <Badge bg="info">
+              <Badge bg="warning" text="dark">
                 {member.membershipDuration} Month{member.membershipDuration > 1 && 's'}
               </Badge>
             </div>
@@ -125,33 +125,35 @@ const MemberDetails = () => {
       {/* === Key Stats === */}
       <Row className="g-4 mb-4 text-center">
         <Col md={4}>
-          <Card className="shadow-sm border-primary">
+          <Card className="shadow-sm border-0 bg-light">
             <Card.Body>
-              <CalendarDays size={22} className="text-primary mb-2" />
-              <h6>Membership Duration</h6>
-              <p className="mb-1">{formatDate(member.membershipStartDate)} → {formatDate(member.membershipEndDate)}</p>
+              <CalendarDays size={24} className="text-danger mb-2" />
+              <h6 className="fw-bold text-dark">Membership Duration</h6>
+              <p className="mb-1">
+                {formatDate(member.membershipStartDate)} → {formatDate(member.membershipEndDate)}
+              </p>
               <ProgressBar now={progress} label={`${progress}%`} className="mt-2" />
             </Card.Body>
           </Card>
         </Col>
 
         <Col md={4}>
-          <Card className="shadow-sm border-success">
+          <Card className="shadow-sm border-0 bg-light">
             <Card.Body>
-              <HeartPulse size={22} className="text-success mb-2" />
-              <h6>Health Conditions</h6>
-              <p className="mb-0">{member.healthConditions || 'None'}</p>
+              <HeartPulse size={24} className="text-success mb-2" />
+              <h6 className="fw-bold text-dark">Health Condition</h6>
+              <p className="mb-0 text-muted">{member.healthConditions || 'None'}</p>
             </Card.Body>
           </Card>
         </Col>
 
         <Col md={4}>
-          <Card className="shadow-sm border-warning">
+          <Card className="shadow-sm border-0 bg-light">
             <Card.Body>
-              <Wallet size={22} className="text-warning mb-2" />
-              <h6>Fees Summary</h6>
-              <p className="mb-1 text-success">Paid: ₹{member.paidFee}</p>
-              <p className="mb-0 text-danger">Pending: ₹{member.pendingFee}</p>
+              <Wallet size={24} className="text-warning mb-2" />
+              <h6 className="fw-bold text-dark">Fees Summary</h6>
+              <p className="mb-1 text-success fw-semibold">Paid: ₹{member.paidFee}</p>
+              <p className="mb-0 text-danger fw-semibold">Pending: ₹{member.pendingFee}</p>
             </Card.Body>
           </Card>
         </Col>
@@ -159,14 +161,18 @@ const MemberDetails = () => {
 
       {/* === Body Measurements === */}
       <Card className="shadow-lg border-0 mb-4">
+        <Card.Header className="bg-danger text-white fw-semibold">
+          🏋️ Body Measurements
+        </Card.Header>
         <Card.Body>
-          <h5 className="mb-3 text-primary fw-semibold">🏋️ Body Measurements</h5>
           <Row>
             {['chest', 'waist', 'hips', 'abs', 'arms'].map((part) => (
               <Col md={4} key={part} className="mb-3">
-                <div className="p-3 bg-light rounded text-center border">
+                <div className="p-3 bg-light rounded text-center border border-1">
                   <h6 className="text-muted text-uppercase mb-1">{part}</h6>
-                  <h5 className="fw-bold">{member.bodyMeasurements?.[part] || 'N/A'} cm</h5>
+                  <h5 className="fw-bold text-dark">
+                    {member.bodyMeasurements?.[part] || 'N/A'} cm
+                  </h5>
                 </div>
               </Col>
             ))}
@@ -176,11 +182,13 @@ const MemberDetails = () => {
 
       {/* === Weight Tracker === */}
       <Card className="shadow-lg border-0 mb-4">
+        <Card.Header className="bg-dark text-white fw-semibold">
+          ⚖️ Weight Tracker
+        </Card.Header>
         <Card.Body>
-          <h5 className="mb-3 text-primary fw-semibold">⚖️ Weight Tracker</h5>
           <div className="d-flex justify-content-between align-items-center mb-2">
-            <h4>{member.bodyWeight ?? 'N/A'} kg</h4>
-            <Button variant="outline-primary" size="sm" onClick={() => setShowWeightModal(true)}>
+            <h4 className="fw-bold">{member.bodyWeight ?? 'N/A'} kg</h4>
+            <Button variant="outline-danger" size="sm" onClick={() => setShowWeightModal(true)}>
               Update Weight
             </Button>
           </div>
@@ -189,7 +197,7 @@ const MemberDetails = () => {
               {member.previousWeights.map((w, i) => (
                 <ListGroup.Item key={i} className="d-flex justify-content-between">
                   <span>{new Date(w.date).toLocaleDateString()}</span>
-                  <span>{w.weight} kg</span>
+                  <span className="fw-semibold">{w.weight} kg</span>
                 </ListGroup.Item>
               ))}
             </ListGroup>
@@ -223,7 +231,7 @@ const MemberDetails = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowWeightModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleWeightUpdate} disabled={updatingWeight}>
+          <Button variant="danger" onClick={handleWeightUpdate} disabled={updatingWeight}>
             {updatingWeight ? 'Updating...' : 'Save'}
           </Button>
         </Modal.Footer>
