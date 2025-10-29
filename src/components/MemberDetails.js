@@ -80,9 +80,9 @@ const MemberDetails = () => {
 
       {/* === Hero Header === */}
       <div
-        className="p-4 rounded-4 shadow-lg text-white mb-4"
+        className="p-4 rounded-4 shadow-lg text-white mb-4 border border-light"
         style={{
-          background: 'linear-gradient(135deg, #dc3545 20%, #212529 90%)',
+          background: 'linear-gradient(135deg, #dc3545 20%, #f8f9fa 90%)',
         }}
       >
         <Row className="align-items-center">
@@ -105,13 +105,13 @@ const MemberDetails = () => {
             </Badge>
           </Col>
           <Col md={9}>
-            <h2 className="fw-bold mb-0">{member.name}</h2>
-            <p className="mb-1">{member.address}</p>
-            <p className="mb-2">
+            <h2 className="fw-bold text-dark">{member.name}</h2>
+            <p className="mb-1 text-secondary">{member.address}</p>
+            <p className="mb-2 text-dark">
               <Phone size={16} className="me-1" /> {member.mobileNumber}
             </p>
             <div>
-              <Badge bg="light" text="dark" className="me-2">
+              <Badge bg="dark" className="me-2">
                 <Dumbbell size={14} className="me-1" /> {member.workoutPlan || 'No Plan'}
               </Badge>
               <Badge bg="warning" text="dark">
@@ -125,11 +125,11 @@ const MemberDetails = () => {
       {/* === Key Stats === */}
       <Row className="g-4 mb-4 text-center">
         <Col md={4}>
-          <Card className="shadow-sm border-0 bg-light">
+          <Card className="shadow border border-2 border-danger">
             <Card.Body>
               <CalendarDays size={24} className="text-danger mb-2" />
               <h6 className="fw-bold text-dark">Membership Duration</h6>
-              <p className="mb-1">
+              <p className="mb-1 text-muted">
                 {formatDate(member.membershipStartDate)} → {formatDate(member.membershipEndDate)}
               </p>
               <ProgressBar now={progress} label={`${progress}%`} className="mt-2" />
@@ -138,7 +138,7 @@ const MemberDetails = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="shadow-sm border-0 bg-light">
+          <Card className="shadow border border-2 border-success">
             <Card.Body>
               <HeartPulse size={24} className="text-success mb-2" />
               <h6 className="fw-bold text-dark">Health Condition</h6>
@@ -148,7 +148,7 @@ const MemberDetails = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="shadow-sm border-0 bg-light">
+          <Card className="shadow border border-2 border-warning">
             <Card.Body>
               <Wallet size={24} className="text-warning mb-2" />
               <h6 className="fw-bold text-dark">Fees Summary</h6>
@@ -160,15 +160,15 @@ const MemberDetails = () => {
       </Row>
 
       {/* === Body Measurements === */}
-      <Card className="shadow-lg border-0 mb-4">
-        <Card.Header className="bg-danger text-white fw-semibold">
+      <Card className="shadow border border-2 border-light mb-4">
+        <Card.Header className="bg-danger text-white fw-semibold border-0">
           🏋️ Body Measurements
         </Card.Header>
         <Card.Body>
           <Row>
             {['chest', 'waist', 'hips', 'abs', 'arms'].map((part) => (
               <Col md={4} key={part} className="mb-3">
-                <div className="p-3 bg-light rounded text-center border border-1">
+                <div className="p-3 bg-light rounded text-center border border-1 border-secondary-subtle">
                   <h6 className="text-muted text-uppercase mb-1">{part}</h6>
                   <h5 className="fw-bold text-dark">
                     {member.bodyMeasurements?.[part] || 'N/A'} cm
@@ -181,8 +181,8 @@ const MemberDetails = () => {
       </Card>
 
       {/* === Weight Tracker === */}
-      <Card className="shadow-lg border-0 mb-4">
-        <Card.Header className="bg-dark text-white fw-semibold">
+      <Card className="shadow border border-2 border-light mb-4">
+        <Card.Header className="bg-light fw-semibold border-0 text-dark">
           ⚖️ Weight Tracker
         </Card.Header>
         <Card.Body>
