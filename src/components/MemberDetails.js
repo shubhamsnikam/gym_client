@@ -79,49 +79,68 @@ const MemberDetails = () => {
       <ToastContainer position="top-center" theme="colored" />
 
       {/* === Profile Header === */}
-      <div
-        className="p-4 rounded-4 shadow text-white mb-4"
-        style={{
-          backgroundColor: '#dc3545', // Single theme color
-        }}
+<div
+  className="p-4 rounded-4 shadow text-white mb-4"
+  style={{
+    backgroundColor: "#dc3545", // Keep same theme color
+  }}
+>
+  <Row className="align-items-center">
+    <Col md={3} className="text-center mb-3 mb-md-0">
+      <img
+        src={getPhotoUrl(member.photo)}
+        onError={(e) =>
+          (e.target.src = "https://via.placeholder.com/150?text=No+Image")
+        }
+        alt="Member"
+        className="rounded-circle border border-4 border-light shadow-sm"
+        width={150}
+        height={150}
+        style={{ objectFit: "cover" }}
+      />
+      <Badge
+        bg={expired ? "dark" : "light"}
+        text={expired ? "light" : "dark"}
+        className="mt-3 px-3 py-1"
+        pill
       >
-        <Row className="align-items-center">
-          <Col md={3} className="text-center mb-3 mb-md-0">
-            <img
-              src={getPhotoUrl(member.photo)}
-              onError={(e) => (e.target.src = 'https://via.placeholder.com/150?text=No+Image')}
-              alt="Member"
-              className="rounded-circle border border-4 border-light shadow-sm"
-              width={150}
-              height={150}
-              style={{ objectFit: 'cover' }}
-            />
-            <Badge
-              bg={expired ? 'dark' : 'light'}
-              text={expired ? 'light' : 'dark'}
-              className="mt-3 px-3 py-1"
-              pill
-            >
-              {expired ? 'Expired' : 'Active'}
-            </Badge>
-          </Col>
-          <Col md={9}>
-            <h2 className="fw-bold text-light">{member.name}</h2>
-            <p className="mb-1">{member.address}</p>
-            <p className="mb-2">
-              <Phone size={16} className="me-1" /> {member.mobileNumber}
-            </p>
-            <div>
-              <Badge bg="light" text="dark" className="me-2">
-                <Dumbbell size={14} className="me-1" /> {member.workoutPlan || 'No Plan'}
-              </Badge>
-              <Badge bg="warning" text="dark">
-                {member.membershipDuration} Month{member.membershipDuration > 1 && 's'}
-              </Badge>
-            </div>
-          </Col>
-        </Row>
-      </div>
+        {expired ? "Expired" : "Active"}
+      </Badge>
+    </Col>
+
+    <Col md={9}>
+      <h2 className="fw-bold text-light">{member.name}</h2>
+      <p className="mb-1">{member.address}</p>
+      <p className="mb-2">
+        <Phone size={16} className="me-1" /> {member.mobileNumber}
+      </p>
+
+      {/* --- New structured fields for Workout Plan + Duration --- */}
+      <Row>
+        <Col md={6} className="mb-2">
+          <h6 className="text-white-50 mb-1">
+            <Dumbbell size={14} className="me-1" />
+            Workout Plan
+          </h6>
+          <p className="fw-semibold mb-0 text-light">
+            {member.workoutPlan || "No Plan Assigned"}
+          </p>
+        </Col>
+        <Col md={6}>
+          <h6 className="text-white-50 mb-1">
+            <CalendarDays size={14} className="me-1" />
+            Membership Duration
+          </h6>
+          <p className="fw-semibold mb-0 text-light">
+            {member.membershipDuration} Month
+            {member.membershipDuration > 1 && "s"}
+          </p>
+        </Col>
+      </Row>
+    </Col>
+  </Row>
+</div>
+
 
       {/* === Key Stats === */}
       <Row className="g-4 mb-4 text-center">
