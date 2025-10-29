@@ -130,18 +130,23 @@ const Dashboard = () => {
 
       {/* Chart + Revenue Section */}
       <Row className="g-4">
+        {/* Revenue Card */}
         <Col md={6}>
           <Card
             className="border-0 shadow-sm text-center h-100"
             style={{
               borderRadius: "16px",
-              background: "linear-gradient(135deg, #007bff, #00b4d8)",
-              color: "white",
+              background: "white",
+              borderTop: "5px solid #f7c32e",
+              boxShadow: "0 4px 15px rgba(247,195,46,0.2)",
             }}
           >
             <Card.Body className="py-5">
-              <h5 className="fw-semibold mb-2">💰 Total Revenue</h5>
-              <h1 className="fw-bold mt-3">
+              <h5 className="fw-semibold mb-2 text-dark">💰 Total Revenue</h5>
+              <h1
+                className="fw-bold mt-3"
+                style={{ color: "#f7c32e", fontSize: "2.8rem" }}
+              >
                 ₹
                 <CountUp
                   end={stats.totalRevenue}
@@ -153,6 +158,7 @@ const Dashboard = () => {
           </Card>
         </Col>
 
+        {/* Monthly Registrations Chart */}
         <Col md={6}>
           <Card
             className="border-0 shadow-sm h-100"
