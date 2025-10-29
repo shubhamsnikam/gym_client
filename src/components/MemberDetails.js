@@ -23,7 +23,6 @@ const MemberDetails = () => {
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [updatingWeight, setUpdatingWeight] = useState(false);
@@ -82,7 +81,7 @@ const MemberDetails = () => {
       <div
         className="p-4 rounded-4 shadow text-white mb-4 border border-dark"
         style={{
-          background: '#dc3545',
+          background: '#1b1f3b',
         }}
       >
         <Row className="align-items-center">
@@ -97,7 +96,7 @@ const MemberDetails = () => {
               style={{ objectFit: 'cover' }}
             />
             <Badge
-              bg={expired ? 'dark' : 'success'}
+              bg={expired ? 'danger' : 'success'}
               className="mt-3 px-3 py-1"
               pill
             >
@@ -105,16 +104,16 @@ const MemberDetails = () => {
             </Badge>
           </Col>
           <Col md={9}>
-            <h2 className="fw-bold">{member.name}</h2>
-            <p className="mb-1">{member.address}</p>
-            <p className="mb-2">
+            <h2 className="fw-bold text-light">{member.name}</h2>
+            <p className="mb-1 text-secondary">{member.address}</p>
+            <p className="mb-2 text-light">
               <Phone size={16} className="me-1" /> {member.mobileNumber}
             </p>
             <div>
-              <Badge bg="light" text="dark" className="me-2 border border-dark">
+              <Badge bg="info" className="me-2 border border-light">
                 <Dumbbell size={14} className="me-1" /> {member.workoutPlan || 'No Plan'}
               </Badge>
-              <Badge bg="warning" text="dark" className="border border-dark">
+              <Badge bg="warning" text="dark" className="border border-light">
                 {member.membershipDuration} Month{member.membershipDuration > 1 && 's'}
               </Badge>
             </div>
@@ -125,10 +124,15 @@ const MemberDetails = () => {
       {/* === Key Stats === */}
       <Row className="g-4 mb-4 text-center">
         <Col md={4} className="d-flex">
-          <Card className="shadow flex-fill border border-2 border-dark">
+          <Card className="shadow flex-fill border border-dark">
+            <Card.Header
+              className="fw-bold text-light"
+              style={{ background: 'linear-gradient(90deg, #0d6efd, #007bff)' }}
+            >
+              Membership Duration
+            </Card.Header>
             <Card.Body>
-              <CalendarDays size={24} className="text-danger mb-2" />
-              <h6 className="fw-bold text-dark">Membership Duration</h6>
+              <CalendarDays size={24} className="text-primary mb-2" />
               <p className="mb-1 text-muted">
                 {formatDate(member.membershipStartDate)} → {formatDate(member.membershipEndDate)}
               </p>
@@ -138,20 +142,30 @@ const MemberDetails = () => {
         </Col>
 
         <Col md={4} className="d-flex">
-          <Card className="shadow flex-fill border border-2 border-dark">
+          <Card className="shadow flex-fill border border-dark">
+            <Card.Header
+              className="fw-bold text-light"
+              style={{ background: 'linear-gradient(90deg, #28a745, #20c997)' }}
+            >
+              Health Condition
+            </Card.Header>
             <Card.Body>
               <HeartPulse size={24} className="text-success mb-2" />
-              <h6 className="fw-bold text-dark">Health Condition</h6>
               <p className="mb-0 text-muted">{member.healthConditions || 'None'}</p>
             </Card.Body>
           </Card>
         </Col>
 
         <Col md={4} className="d-flex">
-          <Card className="shadow flex-fill border border-2 border-dark">
+          <Card className="shadow flex-fill border border-dark">
+            <Card.Header
+              className="fw-bold text-light"
+              style={{ background: 'linear-gradient(90deg, #ffc107, #fd7e14)' }}
+            >
+              Fees Summary
+            </Card.Header>
             <Card.Body>
               <Wallet size={24} className="text-warning mb-2" />
-              <h6 className="fw-bold text-dark">Fees Summary</h6>
               <p className="mb-1 text-success fw-semibold">Paid: ₹{member.paidFee}</p>
               <p className="mb-0 text-danger fw-semibold">Pending: ₹{member.pendingFee}</p>
             </Card.Body>
@@ -161,14 +175,14 @@ const MemberDetails = () => {
 
       {/* === Body Measurements === */}
       <Card className="shadow border border-dark mb-4">
-        <Card.Header className="bg-light fw-semibold border-bottom border-dark text-dark">
+        <Card.Header className="bg-primary text-white fw-semibold border-bottom border-dark">
           🏋️ Body Measurements
         </Card.Header>
         <Card.Body>
           <Row>
             {['chest', 'waist', 'hips', 'abs', 'arms'].map((part) => (
               <Col md={4} key={part} className="mb-3">
-                <div className="p-3 bg-white rounded text-center border border-dark">
+                <div className="p-3 bg-light rounded text-center border border-dark">
                   <h6 className="text-muted text-uppercase mb-1">{part}</h6>
                   <h5 className="fw-bold text-dark">
                     {member.bodyMeasurements?.[part] || 'N/A'} cm
@@ -182,13 +196,13 @@ const MemberDetails = () => {
 
       {/* === Weight Tracker === */}
       <Card className="shadow border border-dark mb-4">
-        <Card.Header className="bg-light fw-semibold border-bottom border-dark text-dark">
+        <Card.Header className="bg-danger text-white fw-semibold border-bottom border-dark">
           ⚖️ Weight Tracker
         </Card.Header>
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-2">
-            <h4 className="fw-bold">{member.bodyWeight ?? 'N/A'} kg</h4>
-            <Button variant="dark" size="sm" onClick={() => setShowWeightModal(true)}>
+            <h4 className="fw-bold text-dark">{member.bodyWeight ?? 'N/A'} kg</h4>
+            <Button variant="outline-danger" size="sm" onClick={() => setShowWeightModal(true)}>
               Update Weight
             </Button>
           </div>
@@ -211,7 +225,7 @@ const MemberDetails = () => {
       </Card>
 
       <div className="text-end">
-        <Button variant="secondary" onClick={() => navigate('/members')}>
+        <Button variant="dark" onClick={() => navigate('/members')}>
           ← Back to Members
         </Button>
       </div>
@@ -234,7 +248,7 @@ const MemberDetails = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowWeightModal(false)}>Cancel</Button>
-          <Button variant="dark" onClick={handleWeightUpdate} disabled={updatingWeight}>
+          <Button variant="primary" onClick={handleWeightUpdate} disabled={updatingWeight}>
             {updatingWeight ? 'Updating...' : 'Save'}
           </Button>
         </Modal.Footer>
