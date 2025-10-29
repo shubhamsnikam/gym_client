@@ -70,9 +70,13 @@ const MembersList = () => {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="text-primary fw-bold">🏋️ Members List</h2>
+        <h2 className="fw-bold" style={{ color: '#ffb300' }}>
+          🏋️ Members List
+        </h2>
         <Link to="/members/add">
-          <Button variant="success">Register New Member</Button>
+          <Button style={{ backgroundColor: '#007bff', border: 'none' }}>
+            Register New Member
+          </Button>
         </Link>
       </div>
 
@@ -102,15 +106,32 @@ const MembersList = () => {
           </InputGroup>
 
           {loading ? (
-            <p className="text-center my-4">Loading members...</p>
+            <p className="text-center my-4 text-muted">Loading members...</p>
           ) : filteredMembers.length === 0 ? (
-            <p className="text-center my-4">
-              {searchTerm ? 'No members match your search.' : 'No members found. Add a new member to get started.'}
+            <p className="text-center my-4 text-muted">
+              {searchTerm
+                ? 'No members match your search.'
+                : 'No members found. Add a new member to get started.'}
             </p>
           ) : (
             <div className="table-responsive">
-              <Table hover className="align-middle">
-                <thead className="table-primary">
+              <Table
+                hover
+                bordered
+                className="align-middle text-center shadow-sm rounded"
+                style={{
+                  borderRadius: '10px',
+                  overflow: 'hidden',
+                }}
+              >
+                <thead
+                  style={{
+                    background: 'linear-gradient(90deg, #ffcc00, #007bff, #ff4d4d)',
+                    color: 'white',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
                   <tr>
                     <th>Photo</th>
                     <th>Name</th>
@@ -120,7 +141,7 @@ const MembersList = () => {
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody style={{ backgroundColor: '#fffdf6' }}>
                   {filteredMembers.map((member) => {
                     const photoUrl = getPhotoUrl(member.photo);
                     const endDate = new Date(member.membershipEndDate);
@@ -130,7 +151,18 @@ const MembersList = () => {
                     const isExpired = endDate < today;
 
                     return (
-                      <tr key={member._id} className="table-row-hover">
+                      <tr
+                        key={member._id}
+                        style={{
+                          transition: 'background-color 0.25s ease',
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor = '#fff7cc')
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = '#fffdf6')
+                        }
+                      >
                         <td>
                           <img
                             src={photoUrl}
@@ -146,11 +178,11 @@ const MembersList = () => {
                               objectFit: 'cover',
                               borderRadius: '50%',
                               cursor: 'pointer',
-                              border: '2px solid #dee2e6',
+                              border: '2px solid #007bff',
                             }}
                             onError={(e) => {
                               if (!e.target.dataset.fallback) {
-                                e.target.src = '/no-image.png'; // use local fallback
+                                e.target.src = '/no-image.png';
                                 e.target.dataset.fallback = 'true';
                               }
                             }}
@@ -169,7 +201,7 @@ const MembersList = () => {
                           </span>
                         </td>
                         <td>
-                          <div className="d-flex gap-2">
+                          <div className="d-flex gap-2 justify-content-center">
                             <Link to={`/members/${member._id}`}>
                               <Button variant="success" size="sm">
                                 View
@@ -181,11 +213,17 @@ const MembersList = () => {
                               </Button>
                             </Link>
                             <Button
-                              variant={confirmDelete === member._id ? 'danger' : 'outline-danger'}
+                              variant={
+                                confirmDelete === member._id
+                                  ? 'danger'
+                                  : 'outline-danger'
+                              }
                               size="sm"
                               onClick={() => handleDelete(member._id)}
                             >
-                              {confirmDelete === member._id ? 'Confirm' : 'Delete'}
+                              {confirmDelete === member._id
+                                ? 'Confirm'
+                                : 'Delete'}
                             </Button>
                           </div>
                         </td>
