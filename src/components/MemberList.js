@@ -50,7 +50,6 @@ const MembersList = () => {
     }
   };
 
-  // ✅ Consistent local date formatting (avoids timezone offset issues)
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -71,7 +70,7 @@ const MembersList = () => {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="zigzag-underline">🏋️ Members List</h2>
+        <h2 className="text-primary fw-bold">🏋️ Members List</h2>
         <Link to="/members/add">
           <Button variant="success">Register New Member</Button>
         </Link>
@@ -80,21 +79,14 @@ const MembersList = () => {
       {(error || success) && (
         <Alert
           variant={success ? 'success' : 'danger'}
-          style={{
-            position: 'fixed',
-            top: '40%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 9999,
-            minWidth: '300px',
-            textAlign: 'center',
-          }}
+          className="text-center position-fixed top-50 start-50 translate-middle shadow"
+          style={{ zIndex: 9999, minWidth: '300px' }}
         >
           {success || error}
         </Alert>
       )}
 
-      <Card className="mb-4 shadow-sm border-0">
+      <Card className="mb-4 shadow-lg border-0">
         <Card.Body>
           <InputGroup className="mb-3">
             <Form.Control
@@ -117,8 +109,8 @@ const MembersList = () => {
             </p>
           ) : (
             <div className="table-responsive">
-              <Table striped hover>
-                <thead>
+              <Table hover className="align-middle">
+                <thead className="table-primary">
                   <tr>
                     <th>Photo</th>
                     <th>Name</th>
@@ -138,7 +130,7 @@ const MembersList = () => {
                     const isExpired = endDate < today;
 
                     return (
-                      <tr key={member._id}>
+                      <tr key={member._id} className="table-row-hover">
                         <td>
                           <img
                             src={photoUrl}
@@ -149,22 +141,30 @@ const MembersList = () => {
                               setShowPreview(true);
                             }}
                             style={{
-                              width: '40px',
-                              height: '40px',
+                              width: '45px',
+                              height: '45px',
                               objectFit: 'cover',
                               borderRadius: '50%',
                               cursor: 'pointer',
+                              border: '2px solid #dee2e6',
                             }}
                             onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/40?text=No+Img';
+                              if (!e.target.dataset.fallback) {
+                                e.target.src = '/no-image.png'; // use local fallback
+                                e.target.dataset.fallback = 'true';
+                              }
                             }}
                           />
                         </td>
-                        <td>{member.name}</td>
+                        <td className="fw-semibold">{member.name}</td>
                         <td>{member.mobileNumber}</td>
                         <td>{formatDate(member.membershipEndDate)}</td>
                         <td>
-                          <span className={`badge ${isExpired ? 'bg-danger' : 'bg-success'}`}>
+                          <span
+                            className={`badge px-3 py-2 ${
+                              isExpired ? 'bg-danger' : 'bg-success'
+                            }`}
+                          >
                             {isExpired ? 'Expired' : 'Active'}
                           </span>
                         </td>
@@ -199,7 +199,7 @@ const MembersList = () => {
         </Card.Body>
       </Card>
 
-      {/* Image preview modal */}
+      {/* Image Preview Modal */}
       <Modal show={showPreview} onHide={() => setShowPreview(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Profile Photo</Modal.Title>
@@ -210,7 +210,10 @@ const MembersList = () => {
             alt="Preview"
             style={{ width: '100%', maxHeight: '600px', objectFit: 'contain' }}
             onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+              if (!e.target.dataset.fallback) {
+                e.target.src = '/no-image.png';
+                e.target.dataset.fallback = 'true';
+              }
             }}
           />
         </Modal.Body>
