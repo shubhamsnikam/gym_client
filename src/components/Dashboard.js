@@ -96,12 +96,6 @@ const Dashboard = () => {
             color: "#dc3545",
             shadow: "rgba(220,53,69,0.3)",
           },
-          {
-            label: "Pending Fees",
-            value: "₹" + formatCurrency(stats.pendingFees),
-            color: "#ffc107",
-            shadow: "rgba(255,193,7,0.3)",
-          },
         ].map((card, i) => (
           <Col md={3} key={i}>
             <Card
@@ -210,4 +204,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
 
