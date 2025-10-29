@@ -181,9 +181,9 @@ const MemberDetails = () => {
         </Card.Body>
       </Card>
 
-      {/* === Weight Tracker === */}
-      <Card className="shadow border-0 mb-4">
-        <Card.Header className="bg-light fw-semibold border-0 text-dark">
+       {/* === Weight Tracker === */}
+      <Card className="shadow-lg border-0 mb-4">
+        <Card.Header className="bg-dark text-white fw-semibold">
           ⚖️ Weight Tracker
         </Card.Header>
         <Card.Body>
@@ -240,5 +240,4 @@ const MemberDetails = () => {
     </div>
   );
 };
-
 export default MemberDetails;
