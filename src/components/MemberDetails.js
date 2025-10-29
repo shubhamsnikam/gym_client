@@ -95,7 +95,7 @@ const MemberDetails = () => {
         className="p-4 rounded-4 shadow text-white mb-4"
         style={{
           backgroundColor: "#0b1e39",
-          border: "1px solid #2c2c2c",
+          border: "1px solid #2f3640",
         }}
       >
         <Row className="align-items-center">
@@ -145,8 +145,8 @@ const MemberDetails = () => {
           <Card
             className="h-100 text-light shadow-sm"
             style={{
-              background: "#1b2a49",
-              border: "1px solid #3a3a3a",
+              background: "#182747",
+              border: "1px solid #2f3640",
             }}
           >
             <Card.Body>
@@ -170,8 +170,8 @@ const MemberDetails = () => {
           <Card
             className="h-100 text-light shadow-sm"
             style={{
-              background: "#1d3b2f",
-              border: "1px solid #3a3a3a",
+              background: "#1a3c34",
+              border: "1px solid #2f3640",
             }}
           >
             <Card.Body>
@@ -186,8 +186,8 @@ const MemberDetails = () => {
           <Card
             className="h-100 text-light shadow-sm"
             style={{
-              background: "#3d2f1d",
-              border: "1px solid #3a3a3a",
+              background: "#3a2f1d",
+              border: "1px solid #2f3640",
             }}
           >
             <Card.Body>
@@ -208,15 +208,14 @@ const MemberDetails = () => {
       <Card
         className="shadow-sm mb-4 text-light"
         style={{
-          background: "#212529",
-          border: "1px solid #3a3a3a",
+          background: "#121820",
+          border: "1px solid #2f3640",
         }}
       >
-        <Card.Header
-          className="fw-semibold text-light border-bottom"
-          style={{ borderColor: "#3a3a3a" }}
-        >
-          🏋️ Body Measurements
+        <Card.Header className="fw-semibold text-primary border-bottom border-secondary bg-transparent">
+          <h5 className="fw-bold mb-0" style={{ color: "#0d6efd" }}>
+            🏋️ Body Measurements
+          </h5>
         </Card.Header>
         <Card.Body>
           <Row>
@@ -225,8 +224,8 @@ const MemberDetails = () => {
                 <div
                   className="p-3 rounded text-center"
                   style={{
-                    background: "#2a2e35",
-                    border: "1px solid #444",
+                    background: "#1e2530",
+                    border: "1px solid #2f3640",
                   }}
                 >
                   <h6 className="text-muted text-uppercase mb-1">{part}</h6>
@@ -244,19 +243,20 @@ const MemberDetails = () => {
       <Card
         className="shadow-sm mb-4 text-light"
         style={{
-          background: "#1f2937",
-          border: "1px solid #3a3a3a",
+          background: "#121820",
+          border: "1px solid #2f3640",
         }}
       >
-        <Card.Header
-          className="fw-semibold text-light border-bottom"
-          style={{ borderColor: "#3a3a3a" }}
-        >
-          ⚖️ Weight Tracker
+        <Card.Header className="fw-semibold border-bottom border-secondary bg-transparent">
+          <h5 className="fw-bold mb-0" style={{ color: "#ffc107" }}>
+            ⚖️ Weight Tracker
+          </h5>
         </Card.Header>
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-2">
-            <h4 className="fw-bold">{member.bodyWeight ?? "N/A"} kg</h4>
+            <h4 className="fw-bold text-light">
+              {member.bodyWeight ?? "N/A"} kg
+            </h4>
             <Button
               variant="outline-light"
               size="sm"
@@ -272,8 +272,8 @@ const MemberDetails = () => {
                   key={i}
                   className="d-flex justify-content-between text-light"
                   style={{
-                    background: "#2a2e35",
-                    border: "1px solid #3a3a3a",
+                    background: "#1e2530",
+                    border: "1px solid #2f3640",
                   }}
                 >
                   <span>{new Date(w.date).toLocaleDateString()}</span>
