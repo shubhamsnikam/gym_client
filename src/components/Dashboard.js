@@ -40,9 +40,6 @@ const Dashboard = () => {
     }
   };
 
-  const formatCurrency = (num) =>
-    num?.toLocaleString("en-IN", { maximumFractionDigits: 0 }) || 0;
-
   if (loading)
     return (
       <div className="text-center my-5">
@@ -61,11 +58,11 @@ const Dashboard = () => {
     <div
       className="container-fluid py-5"
       style={{
-        background:
-          "linear-gradient(145deg, #f3f4f7 0%, #e8ebef 100%)",
+        background: "#f7f8fa",
         minHeight: "100vh",
       }}
     >
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold text-dark">
           🏋️‍♀️ Sai Fitness Analytics Dashboard
@@ -75,58 +72,53 @@ const Dashboard = () => {
         </Button>
       </div>
 
-      {/* Cards */}
-      <Row className="g-4 mb-4">
+      {/* Top Stats Cards */}
+      <Row className="g-4 mb-4 justify-content-center">
         {[
           {
             label: "Total Members",
             value: stats.totalMembers,
             color: "#007bff",
-            shadow: "rgba(0,123,255,0.3)",
+            shadow: "rgba(0,123,255,0.25)",
           },
           {
             label: "Active Members",
             value: stats.activeMembers,
             color: "#28a745",
-            shadow: "rgba(40,167,69,0.3)",
+            shadow: "rgba(40,167,69,0.25)",
           },
           {
             label: "Expired Members",
             value: stats.expiredMembers,
             color: "#dc3545",
-            shadow: "rgba(220,53,69,0.3)",
+            shadow: "rgba(220,53,69,0.25)",
           },
         ].map((card, i) => (
-          <Col md={3} key={i}>
+          <Col md={4} sm={6} key={i}>
             <Card
-              className="text-center border-0 shadow-sm"
+              className="text-center border-0 shadow-sm h-100"
               style={{
                 borderRadius: "16px",
-                backdropFilter: "blur(10px)",
-                backgroundColor: "rgba(255, 255, 255, 0.7)",
+                backgroundColor: "white",
                 boxShadow: `0 4px 15px ${card.shadow}`,
-                transition: "transform 0.2s",
+                transition: "transform 0.25s ease",
               }}
               onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = "translateY(-5px)")
+                (e.currentTarget.style.transform = "translateY(-6px)")
               }
               onMouseLeave={(e) =>
                 (e.currentTarget.style.transform = "translateY(0)")
               }
             >
-              <Card.Body>
+              <Card.Body className="py-4">
                 <h6 className="fw-semibold text-secondary">{card.label}</h6>
                 <h2
-                  className="fw-bold"
-                  style={{
-                    color: card.color,
-                    marginTop: "8px",
-                    fontSize: "2.2rem",
-                  }}
+                  className="fw-bold mt-2"
+                  style={{ color: card.color, fontSize: "2.3rem" }}
                 >
                   <CountUp
                     end={parseFloat(card.value) || 0}
-                    duration={1.8}
+                    duration={1.5}
                     separator=","
                   />
                 </h2>
@@ -136,21 +128,26 @@ const Dashboard = () => {
         ))}
       </Row>
 
-      {/* Chart Section */}
+      {/* Chart + Revenue Section */}
       <Row className="g-4">
         <Col md={6}>
           <Card
-            className="border-0 shadow-sm text-center"
+            className="border-0 shadow-sm text-center h-100"
             style={{
               borderRadius: "16px",
-              background: "linear-gradient(145deg, #007bff, #00b4d8)",
+              background: "linear-gradient(135deg, #007bff, #00b4d8)",
               color: "white",
             }}
           >
-            <Card.Body>
-              <h5 className="fw-semibold">💰 Total Revenue</h5>
-              <h1 className="fw-bold mt-2">
-                ₹<CountUp end={stats.totalRevenue} duration={2} separator="," />
+            <Card.Body className="py-5">
+              <h5 className="fw-semibold mb-2">💰 Total Revenue</h5>
+              <h1 className="fw-bold mt-3">
+                ₹
+                <CountUp
+                  end={stats.totalRevenue}
+                  duration={2}
+                  separator=","
+                />
               </h1>
             </Card.Body>
           </Card>
@@ -158,7 +155,7 @@ const Dashboard = () => {
 
         <Col md={6}>
           <Card
-            className="border-0 shadow-sm"
+            className="border-0 shadow-sm h-100"
             style={{
               borderRadius: "16px",
               background: "white",
@@ -193,16 +190,12 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      {/* Footer Note */}
+      {/* Footer */}
       <div className="text-center text-muted mt-5 small">
-        <p>
-          © {new Date().getFullYear()} Sai Fitness Gym 
-        </p>
+        <p>© {new Date().getFullYear()} Sai Fitness Gym</p>
       </div>
     </div>
   );
 };
 
 export default Dashboard;
-
-
