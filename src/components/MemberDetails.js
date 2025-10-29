@@ -125,7 +125,7 @@ const MemberDetails = () => {
       {/* === Key Stats === */}
       <Row className="g-4 mb-4 text-center">
         <Col md={4}>
-          <Card className="h-100 shadow-sm" style={{ border: '1px solid #dcdcdc' }}>
+          <Card className="h-100 shadow-sm" style={{ background: '#e7f1ff', border: '1px solid #dcdcdc' }}>
             <Card.Body>
               <CalendarDays size={24} className="text-primary mb-2" />
               <h6 className="fw-bold text-dark">Membership Duration</h6>
@@ -138,7 +138,7 @@ const MemberDetails = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="h-100 shadow-sm" style={{ border: '1px solid #dcdcdc' }}>
+          <Card className="h-100 shadow-sm" style={{ background: '#e9fbe7', border: '1px solid #dcdcdc' }}>
             <Card.Body>
               <HeartPulse size={24} className="text-success mb-2" />
               <h6 className="fw-bold text-dark">Health Condition</h6>
@@ -148,7 +148,7 @@ const MemberDetails = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="h-100 shadow-sm" style={{ border: '1px solid #dcdcdc' }}>
+          <Card className="h-100 shadow-sm" style={{ background: '#fff9e6', border: '1px solid #dcdcdc' }}>
             <Card.Body>
               <Wallet size={24} className="text-warning mb-2" />
               <h6 className="fw-bold text-dark">Fees Summary</h6>
@@ -160,7 +160,7 @@ const MemberDetails = () => {
       </Row>
 
       {/* === Body Measurements === */}
-      <Card className="shadow-sm mb-4" style={{ border: '1px solid #dcdcdc' }}>
+      <Card className="shadow-sm mb-4" style={{ border: '1px solid #dcdcdc', background: '#f4f7fa' }}>
         <Card.Header className="fw-semibold text-dark bg-light border-bottom" style={{ borderColor: '#dcdcdc' }}>
           🏋️ Body Measurements
         </Card.Header>
@@ -181,7 +181,7 @@ const MemberDetails = () => {
       </Card>
 
       {/* === Weight Tracker === */}
-      <Card className="shadow-sm mb-4" style={{ border: '1px solid #dcdcdc' }}>
+      <Card className="shadow-sm mb-4" style={{ border: '1px solid #dcdcdc', background: '#fff5ee' }}>
         <Card.Header className="fw-semibold text-dark bg-light border-bottom" style={{ borderColor: '#dcdcdc' }}>
           ⚖️ Weight Tracker
         </Card.Header>
