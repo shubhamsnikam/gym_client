@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, Alert, Form, InputGroup, Modal } from 'react-bootstrap';
+import { Table, Button, Card, Alert, Form, InputGroup, Modal, Badge, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { getMembers, deleteMember } from '../services/api';
 import { getPhotoUrl } from '../utils/photoUrl';
@@ -24,8 +24,7 @@ const MembersList = () => {
       const data = await getMembers();
       setMembers(data);
       setError('');
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError('Failed to fetch members');
     } finally {
       setLoading(false);
@@ -37,12 +36,11 @@ const MembersList = () => {
       try {
         await deleteMember(id);
         setMembers((prev) => prev.filter((m) => m._id !== id));
-        setSuccess('Member deleted successfully');
+        setSuccess('✅ Member deleted successfully');
         setConfirmDelete(null);
         setTimeout(() => setSuccess(''), 2000);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to delete member');
+      } catch {
+        setError('❌ Failed to delete member');
         setTimeout(() => setError(''), 2000);
       }
     } else {
@@ -50,7 +48,6 @@ const MembersList = () => {
     }
   };
 
-  // ✅ Consistent local date formatting (avoids timezone offset issues)
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -63,42 +60,40 @@ const MembersList = () => {
   };
 
   const filteredMembers = members.filter(
-    (member) =>
-      member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.mobileNumber?.includes(searchTerm)
+    (m) =>
+      m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.mobileNumber?.includes(searchTerm)
   );
 
   return (
-    <div>
+    <div className="my-5">
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="zigzag-underline">🏋️ Members List</h2>
+        <h3 className="fw-bold text-danger mb-0">🏋️ Members List</h3>
         <Link to="/members/add">
-          <Button variant="success">Register New Member</Button>
+          <Button variant="danger" className="shadow-sm">
+            ➕ Register New Member
+          </Button>
         </Link>
       </div>
 
+      {/* Alerts */}
       {(error || success) && (
         <Alert
           variant={success ? 'success' : 'danger'}
-          style={{
-            position: 'fixed',
-            top: '40%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 9999,
-            minWidth: '300px',
-            textAlign: 'center',
-          }}
+          className="text-center shadow position-fixed top-50 start-50 translate-middle"
+          style={{ zIndex: 9999, minWidth: '320px' }}
         >
           {success || error}
         </Alert>
       )}
 
-      <Card className="mb-4 shadow-sm border-0">
+      <Card className="shadow-sm border-0 rounded-4">
         <Card.Body>
+          {/* Search Bar */}
           <InputGroup className="mb-3">
             <Form.Control
-              placeholder="Search by name or mobile number..."
+              placeholder="🔍 Search by name or mobile number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -109,16 +104,22 @@ const MembersList = () => {
             )}
           </InputGroup>
 
+          {/* Table */}
           {loading ? (
-            <p className="text-center my-4">Loading members...</p>
+            <div className="text-center py-5">
+              <Spinner animation="border" variant="danger" />
+              <p className="mt-3 text-muted">Loading members...</p>
+            </div>
           ) : filteredMembers.length === 0 ? (
-            <p className="text-center my-4">
-              {searchTerm ? 'No members match your search.' : 'No members found. Add a new member to get started.'}
+            <p className="text-center py-4 text-muted">
+              {searchTerm
+                ? 'No members match your search.'
+                : 'No members found. Add a new member to get started.'}
             </p>
           ) : (
             <div className="table-responsive">
-              <Table striped hover>
-                <thead>
+              <Table hover className="align-middle">
+                <thead className="table-danger text-center">
                   <tr>
                     <th>Photo</th>
                     <th>Name</th>
@@ -139,7 +140,7 @@ const MembersList = () => {
 
                     return (
                       <tr key={member._id}>
-                        <td>
+                        <td className="text-center">
                           <img
                             src={photoUrl}
                             alt="Profile"
@@ -149,34 +150,35 @@ const MembersList = () => {
                               setShowPreview(true);
                             }}
                             style={{
-                              width: '40px',
-                              height: '40px',
-                              objectFit: 'cover',
+                              width: '45px',
+                              height: '45px',
                               borderRadius: '50%',
+                              objectFit: 'cover',
                               cursor: 'pointer',
+                              border: '2px solid #f8d7da',
                             }}
                             onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/40?text=No+Img';
+                              e.target.src = 'https://via.placeholder.com/45?text=No+Img';
                             }}
                           />
                         </td>
                         <td>{member.name}</td>
                         <td>{member.mobileNumber}</td>
                         <td>{formatDate(member.membershipEndDate)}</td>
-                        <td>
-                          <span className={`badge ${isExpired ? 'bg-danger' : 'bg-success'}`}>
+                        <td className="text-center">
+                          <Badge bg={isExpired ? 'secondary' : 'success'}>
                             {isExpired ? 'Expired' : 'Active'}
-                          </span>
+                          </Badge>
                         </td>
-                        <td>
-                          <div className="d-flex gap-2">
+                        <td className="text-center">
+                          <div className="d-flex justify-content-center gap-2">
                             <Link to={`/members/${member._id}`}>
-                              <Button variant="success" size="sm">
+                              <Button variant="outline-success" size="sm">
                                 View
                               </Button>
                             </Link>
                             <Link to={`/members/edit/${member._id}`}>
-                              <Button variant="primary" size="sm">
+                              <Button variant="outline-primary" size="sm">
                                 Edit
                               </Button>
                             </Link>
@@ -199,7 +201,7 @@ const MembersList = () => {
         </Card.Body>
       </Card>
 
-      {/* Image preview modal */}
+      {/* Image Preview Modal */}
       <Modal show={showPreview} onHide={() => setShowPreview(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Profile Photo</Modal.Title>
@@ -208,7 +210,12 @@ const MembersList = () => {
           <img
             src={previewUrl}
             alt="Preview"
-            style={{ width: '100%', maxHeight: '600px', objectFit: 'contain' }}
+            style={{
+              width: '100%',
+              maxHeight: '500px',
+              objectFit: 'contain',
+              borderRadius: '12px',
+            }}
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/150?text=No+Image';
             }}
